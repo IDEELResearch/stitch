@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# stitch <img src="https://raw.githubusercontent.com/IDEELResearch/stitch/main/tools/logo.png" align="right" style="padding-left:10px;background-color:white;" />
+# stitch <img src="tools/logo.png" align="right" style="padding-left:10px;background-color:white;" width="200px" />
 
 <!-- badges: start -->
 
@@ -10,7 +10,7 @@
 status](https://github.com/IDEELResearch/stitch/workflows/R-CMD-check/badge.svg)](https://github.com/IDEELResearch/stitch/actions)
 <!-- badges: end -->
 
-## stich - Spatial Temporal Integrated Trends Compilation Hub
+## {stich} - Spatial Temporal Integrated Trends Compilation Hub
 
 This is a working R compendium (think R package but for reproducible
 analysis). A good overview on research compendiums, see the [R for
