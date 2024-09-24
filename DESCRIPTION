@@ -28,7 +28,7 @@ Suggests:
     rmarkdown,
     testthat
 Remotes:
-    mrc-ide/STAVE
+    mrc-ide/STAVE,
     malaria-atlas-project/malariaAtlas
 URL: https://IDEELResearch.github.io/stitch/
 Encoding: UTF-8
