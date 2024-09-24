@@ -20,7 +20,5 @@ and the \code{map} shp file from \code{scrape}. Bespoke function to wrangle \cod
 \examples{
 # Example of how to use the function
 # covars <- readRDS("analysis/data_raw/final_covariates.rds")
-
-map_data <- get_map_covar_data(covars)
-
+# map_data <- get_map_covar_data(covars)
 }

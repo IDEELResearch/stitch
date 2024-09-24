@@ -17,5 +17,5 @@ This function extracts the centroid coordinates from the geometries of a shape f
 }
 \examples{
 # shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
-shp_adm0 <- shp_adm0 \%>\% append_lat_lon()
+# shp_adm0 <- shp_adm0 \%>\% append_lat_lon()
 }

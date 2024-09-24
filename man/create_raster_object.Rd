@@ -20,37 +20,37 @@ This function converts a sf shape file into a raster object.
 \examples{
 # Example of usage:
 # Read in Africa shape file
-rds_file = "analysis/data_derived/sf_admin0_africa.rds"
-africa_shp <- readRDS(file = rds_file)
+# rds_file = "analysis/data_derived/sf_admin0_africa.rds"
+# africa_shp <- readRDS(file = rds_file)
 
 # Create a raster for Uganda
-uganda_shp <- africa_shp \%>\% dplyr::filter(iso=="UGA")
-uganda_raster <- create_raster_object(shape_obj=uganda_shp)
+# uganda_shp <- africa_shp \%>\% dplyr::filter(iso=="UGA")
+# uganda_raster <- create_raster_object(shape_obj=uganda_shp)
 # Plot Uganda raster with Ugandan boarder
-plot(uganda_raster)
-plot(st_geometry(uganda_shp), add=TRUE, border="black")
+# plot(uganda_raster)
+# plot(st_geometry(uganda_shp), add=TRUE, border="black")
 
 # Save the raster to a file
-writeRaster(uganda_raster,
-            filename="analysis/data_derived/uganda_raster_admin0.tif",
-            filetype="GTiff",
-            overwrite=TRUE)
+# writeRaster(uganda_raster,
+            # filename="analysis/data_derived/uganda_raster_admin0.tif",
+            # filetype="GTiff",
+            # overwrite=TRUE)
 
 # Plot raster via ggplot
-uganda_raster_df <- as.data.frame(uganda_raster, xy=TRUE, na.rm=TRUE)
-ggplot() +
-  geom_raster(data = uganda_raster_df, aes(x = x, y = y)) +
-  #geom_sf(data=uganda_shp, color = "black", size = 0.5) +
-  scale_fill_viridis_c() +  # Optional: Nice color scale
-  coord_equal() +
-  theme_minimal() +
-  labs(
-    title = "Africa Admin 0 Raster",
-    x = "Longitude",
-    y = "Latitude"
-  )
+# uganda_raster_df <- as.data.frame(uganda_raster, xy=TRUE, na.rm=TRUE)
+# ggplot() +
+  # geom_raster(data = uganda_raster_df, aes(x = x, y = y)) +
+  # #geom_sf(data=uganda_shp, color = "black", size = 0.5) +
+  # scale_fill_viridis_c() +  # Optional: Nice color scale
+  # coord_equal() +
+  # theme_minimal() +
+  # labs(
+    # title = "Africa Admin 0 Raster",
+    # x = "Longitude",
+    # y = "Latitude"
+  # )
 
 # Create African raster
-africa_raster <- create_raster_object(shape_obj=africa_shp)
-plot(africa_raster)
+# africa_raster <- create_raster_object(shape_obj=africa_shp)
+# plot(africa_raster)
 }

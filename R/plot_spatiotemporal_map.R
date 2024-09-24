@@ -15,6 +15,7 @@
 #' @importFrom dplyr filter
 #' @importFrom rlang sym
 #' @importFrom scales percent_format
+#' @importFrom rlang .data
 #'
 #' @examples
 #' # Example of how to use the function

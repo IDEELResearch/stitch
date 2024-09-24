@@ -21,7 +21,6 @@ Imports:
     terra,
     dplyr,
     sf,
-    raster,
     purrr,
     rlang,
     scales
