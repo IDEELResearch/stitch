@@ -27,7 +27,7 @@ outputs to 'analysis/plots' directory. Will likely edit this to be more felxible
 # Example of how to use the function
 # covars <- readRDS("analysis/data_raw/final_covariates.rds")
 # border_sf <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
-map_data <- get_map_covar_data(covars)
-variable_names <- c("pfpr210_mean", "ft", "AL")
-plot_spatiotemporal_map(map_data, border_sf, variable_names)
+# map_data <- get_map_covar_data(covars)
+# variable_names <- c("pfpr210_mean", "ft", "AL")
+# plot_spatiotemporal_map(map_data, border_sf, variable_names)
 }
