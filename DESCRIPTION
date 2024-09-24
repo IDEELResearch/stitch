@@ -22,7 +22,9 @@ Imports:
     dplyr,
     sf,
     raster,
-    purrr
+    purrr,
+    rlang,
+    scales
 Suggests:
     knitr,
     rmarkdown,
