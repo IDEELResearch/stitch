@@ -7,18 +7,14 @@
 #' @param covars_obj Description of the parameter 'x'.
 #' @return A sf object with covariate data in long format from all covar list
 #' @importFrom purrr imap_dfr
+#' @importFrom dplyr mutate left_join
 #'
 #' @examples
 #' # Example of how to use the function
-#' covars <- readRDS("analysis/data_raw/final_covariates.rds")
+#' # covars <- readRDS("analysis/data_raw/final_covariates.rds")
 #'
 #' map_data <- get_map_covar_data(covars)
 #'
-#' map_data %>%
-#' ggplot() +
-#'   geom_sf(aes(fill = ft), color = NA) +
-#'   geom_sf(data = sf_adm0, color = "black", fill = NA) +
-#'   coord_sf()
 
 get_map_covar_data <- function(covars_obj) {
   # Unlist and combine ------------------------------------------------------

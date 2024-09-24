@@ -4,7 +4,8 @@
 #'
 #' @param shp The sf object
 #' @return A shape file with lat lon 'centroid' coordinates appended as columns before the geometries
-#' @export
+#' @importFrom sf sf_use_s2 st_geometry st_centroid st_coordinates
+#' @importFrom dplyr rename relocate
 #'
 #' @examples
 #' shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")

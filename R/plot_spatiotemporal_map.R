@@ -10,12 +10,14 @@
 #' @param border_sf Shape files for the borders (eg adm0)
 #' @param variable_names A vector of variable names that you wish to plot, it will loop over the names if >1
 #' @return Description of the value returned by the function.
-#' @export
+#' @importFrom ggplot2 ggplot geom_sf scale_fill_viridis_c coord_sf facet_wrap theme_void ggsave
+#' @importFrom stringr str_glue
+#' @importFrom dplyr filter
 #'
 #' @examples
 #' # Example of how to use the function
-#' covars <- readRDS("analysis/data_raw/final_covariates.rds")
-#' border_sf <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
+#' # covars <- readRDS("analysis/data_raw/final_covariates.rds")
+#' # border_sf <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
 #' map_data <- get_map_covar_data(covars)
 #' variable_names <- c("pfpr210_mean", "ft", "AL")
 #' plot_spatiotemporal_map(map_data, border_sf, variable_names)
