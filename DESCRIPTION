@@ -21,13 +21,15 @@ Imports:
     terra,
     dplyr,
     sf,
-    raster
+    raster,
+    purrr
 Suggests:
     knitr,
     rmarkdown,
     testthat
 Remotes:
     mrc-ide/STAVE
+    malaria-atlas-project/malariaAtlas
 URL: https://IDEELResearch.github.io/stitch/
 Encoding: UTF-8
 LazyData: true
