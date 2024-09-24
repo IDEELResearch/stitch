@@ -8,7 +8,7 @@
 #' @importFrom dplyr rename relocate
 #'
 #' @examples
-#' shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
+#' # shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
 #' shp_adm0 <- shp_adm0 %>% append_lat_lon()
 
 append_lat_lon <- function(shp){

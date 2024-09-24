@@ -16,6 +16,6 @@ A shape file with lat lon 'centroid' coordinates appended as columns before the 
 This function extracts the centroid coordinates from the geometries of a shape file object and appends them as columns
 }
 \examples{
-shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
+# shp_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
 shp_adm0 <- shp_adm0 \%>\% append_lat_lon()
 }

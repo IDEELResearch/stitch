@@ -10,9 +10,11 @@
 #' @param border_sf Shape files for the borders (eg adm0)
 #' @param variable_names A vector of variable names that you wish to plot, it will loop over the names if >1
 #' @return Description of the value returned by the function.
-#' @importFrom ggplot2 ggplot geom_sf scale_fill_viridis_c coord_sf facet_wrap theme_void ggsave
+#' @importFrom ggplot2 ggplot geom_sf scale_fill_viridis_c coord_sf facet_wrap theme_void ggsave theme aes element_rect
 #' @importFrom stringr str_glue
 #' @importFrom dplyr filter
+#' @importFrom rlang sym
+#' @importFrom scales percent_format
 #'
 #' @examples
 #' # Example of how to use the function
