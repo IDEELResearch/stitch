@@ -16,7 +16,12 @@ Imports:
     ggplot2,
     here,
     magrittr,
-    ragg
+    ragg,
+    stringr,
+    terra,
+    dplyr,
+    sf,
+    raster
 Suggests:
     knitr,
     rmarkdown,

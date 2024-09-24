@@ -1,10 +1,3 @@
-library(stringr)
-library(terra)
-library(dplyr)
-library(sf)
-library(raster)
-library(ggplot2)
-
 # Function to convert a shapefile object to a raster object
 #
 # Args:
