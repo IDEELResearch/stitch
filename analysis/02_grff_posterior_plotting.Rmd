@@ -78,7 +78,7 @@ sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
 # Mask the raster using the sf object
 masked_raster_grff_summary_year <- mask(raster_grff_summary_year, vect(sf_uganda))
 
-plot_spatiotemporal_map_raster(masked_raster_grff_summary_year, vars, plot_by_year = T, years)
+plot_spatiotemporal_map_raster(masked_raster_grff_summary_year, vars, plot_by_year = T)
 ```
 
 ######## DEBUGGING ------------------------
