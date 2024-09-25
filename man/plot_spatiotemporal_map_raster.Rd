@@ -2,31 +2,33 @@
 % Please edit documentation in R/plot_spatiotemporal_map_raster.R
 \name{plot_spatiotemporal_map_raster}
 \alias{plot_spatiotemporal_map_raster}
-\title{Plot spatiotemporal maps from raster data for specified variables}
+\title{Plot Spatiotemporal Maps from Raster Data for Specified Variables}
 \usage{
-plot_spatiotemporal_map_raster(raster, variable_names)
+plot_spatiotemporal_map_raster(raster_df, variable_names, plot_by_year = TRUE)
 }
 \arguments{
-\item{raster}{A raster object (e.g., a SpatRaster from the \strong{terra} package) containing the data to be plotted.}
+\item{raster_df}{A data frame containing the raster data to be plotted. The data frame should contain longitude (\code{long}), latitude (\code{lat}), time, and variables for plotting.}
 
-\item{variable_names}{A vector of variable names corresponding to the layers in the raster object to plot. The function will loop over these names.}
+\item{variable_names}{A vector of variable names corresponding to columns in the \code{raster_df} to plot. The function loops over these names to generate plots.}
+
+\item{plot_by_year}{A logical flag indicating whether to create faceted plots by year (default is \code{TRUE}). If \code{TRUE}, the \code{raster_df} must contain a \code{time} variable for faceting.}
 }
 \value{
-The function does not return a value; it saves plots as PNG files in the 'analysis/plots' directory.
+The function does not return a value but saves the plots as PNG files in the 'analysis/plots' directory.
 }
 \description{
-This function plots spatiotemporal maps from a raster object for each variable specified in the vector \code{variable_names}.
-It converts the raster data to a data frame, filters out missing values, and creates a plot using \strong{ggplot2} for each variable.
-The plots are saved as PNG files in the 'analysis/plots' directory with filenames corresponding to each variable.
-Note that the raster object should contain layers corresponding to the variables specified in \code{variable_names}.
+This function plots spatiotemporal maps from a raster dataframe for each variable
+specified in the vector \code{variable_names}. It converts the raster data to a
+data frame, filters out missing values, and creates a plot using \strong{ggplot2}
+for each variable. If \code{plot_by_year} is \code{TRUE}, the function will generate
+faceted plots by year, requiring a valid \code{year_array}. Otherwise, the plots
+are generated without faceting. The resulting plots are saved as PNG files
+in the 'analysis/plots' directory with filenames corresponding to each variable.
 }
 \examples{
 # Example of how to use the function
-# library(terra)
-# Load your raster data (assuming 'stacked_rasters' is a SpatRaster with
-# layers 'prev_Q50', 'prev_Q2.5', 'prev_Q97.5')
-# grff_summary <- readRDS("data_derived/GRFF_summary_example.rds")
-# sf_grff_summary <- st_as_sf(grff_summary, coords = c("lon", "lat"), crs=4326)
+# Assuming 'raster_df' is a data frame with columns 'long', 'lat', 'time', and variables 'prev_Q50', 'prev_Q2.5', etc.
 # variable_names <- c("prev_Q50", "prev_Q2.5", "prev_Q97.5")
-# plot_spatiotemporal_map_raster(stacked_rasters, variable_names)
+# plot_spatiotemporal_map_raster(raster_df, variable_names, plot_by_year = TRUE)
+
 }

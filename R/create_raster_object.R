@@ -53,7 +53,7 @@
 
 create_raster_object <- function(shape_obj, raster_field, res = 0.05) {
   # Create an empty raster grid covering the extent of the shape object with the specified resolution
-  raster_grid <- rast(ext = ext(shape_obj), resolution = res)
+  raster_grid <- rast(ext = ext(shape_obj) + 0.0001, resolution = res)
 
   # Rasterize the shape object using the 'iso' column (country codes) as values for the raster cells
   rasterized <- rasterize(shape_obj, raster_grid, field = raster_field, background = NA)
