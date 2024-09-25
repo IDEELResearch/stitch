@@ -23,7 +23,8 @@ Imports:
     sf,
     purrr,
     rlang,
-    scales
+    scales,
+    purrr
 Suggests:
     knitr,
     rmarkdown,
