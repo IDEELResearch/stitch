@@ -84,40 +84,48 @@ plot_spatiotemporal_map_raster(masked_raster_grff_summary_year, vars, plot_by_ye
 ######## DEBUGGING ------------------------
 This is an example for just one time point
 ```{r}
-# Obtain only posterior summary for the first time point
-a <- grff_summary_year[[1]]$post_summary
+plot_list <- list()
+count <- 0
+for (i in seq(1, 234, 10)){
+  count <- count + 1
+  print(i)
+  # Obtain only posterior summary for the first time point
+  a <- grff_summary_year[[i]]$post_summary
+  
+  # Convert the dataframe to sf
+  a_sf <- st_as_sf(a, coords = c("lon", "lat"), crs=4326)
+  
+  # Convert sf to raster
+  a_rast <- create_raster_object(a_sf, "prev_Q50")
+  
+  # Ensure the CRS of the raster and sf object match in Uganda
+  sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
+    filter(iso == "UGA")
+  
+  # Mask the raster using the sf object
+  masked_raster <- mask(a_rast, vect(sf_uganda))
+  
+  # Just plot
+  plot(masked_raster)
+  
+  # Convert raster to df
+  raster_df_time1 <- as.data.frame(masked_raster, xy = T) %>%
+      rename("long" = x,
+             "lat" = y)
+  
+  # Plot
+  v <- "prev_Q50"
+  p <- raster_df_time1 %>%
+        filter(!is.na(.data[[v]])) %>%
+        ggplot(aes(x = .data$long, y = .data$lat)) +
+        geom_tile(aes(fill = !!sym(v)), color = NA) +
+        scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
+        coord_fixed() +
+        theme_void(base_size = 14) +
+        theme(plot.background = element_rect(fill = "white", color = "white"))
+  plot_list[[c]] <- p
+}
 
-# Convert the dataframe to sf
-a_sf <- st_as_sf(a, coords = c("lon", "lat"), crs=4326)
-
-# Convert sf to raster
-a_rast <- create_raster_object(a_sf, "prev_Q50")
-
-# Ensure the CRS of the raster and sf object match in Uganda
-sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
-  filter(iso == "UGA")
-
-# Mask the raster using the sf object
-masked_raster <- mask(a_rast, vect(sf_uganda))
-
-# Just plot
-plot(masked_raster)
-
-# Convert raster to df
-raster_df_time1 <- as.data.frame(masked_raster, xy = T) %>%
-    rename("long" = x,
-           "lat" = y)
-
-# Plot
-v <- "prev_Q50"
-p <- raster_df_time1 %>%
-      filter(!is.na(.data[[v]])) %>%
-      ggplot(aes(x = .data$long, y = .data$lat)) +
-      geom_tile(aes(fill = !!sym(v)), color = NA) +
-      scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
-      coord_fixed() +
-      theme_void(base_size = 14) +
-      theme(plot.background = element_rect(fill = "white", color = "white"))
 ```
 
 # Get number of rows
