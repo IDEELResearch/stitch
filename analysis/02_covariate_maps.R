@@ -1,14 +1,12 @@
 # Load pkgs ---------------------------------------------------------------
 
 library(sf)
-library(raster)
 library(tidyverse)
 
 # Read data ---------------------------------------------------------------
 
-covars <- readRDS("analysis/data_raw/final_covariates.rds")
+covars <- readRDS(url("https://github.com/IDEELResearch/scrape/raw/refs/heads/main/analysis/data-derived/final_covariates.rds"))
 sf_adm0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds") # adm0 map data
-
 
 # Unlist and combine dfs in long format with map --------------------------
 
