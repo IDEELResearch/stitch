@@ -21,7 +21,6 @@ Imports:
     terra,
     dplyr,
     sf,
-    purrr,
     rlang,
     scales,
     purrr
