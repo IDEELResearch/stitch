@@ -23,30 +23,108 @@ library(sf)
 library(viridis)
 ```
 
-Loading grff data
+Plotting initial GFF output
 ```{r load data}
+#load in GRFF initial fake data
 grff_draws <- readRDS("data_derived/GRFF_draws_example.rds")
 grff_summary <- readRDS("data_derived/GRFF_summary_example.rds")
-```
 
-Convert dataframe to raster
-```{r convert df to sf object}
 # Convert dataframe to sf object
-sf_grff_summary <- st_as_sf(grff_summary, coords = c("lon", "lat"), crs=4326)
+sf_grff_summary <- st_as_sf(grff_summary, coords = c("lon", "lat"), crs = 4326)
 
-# Rasterize the sf object
-raster_Q2.5 <- create_raster_object(sf_grff_summary, "prev_Q2.5", res = 0.1)
-raster_Q50 <- create_raster_object(sf_grff_summary, "prev_Q50", res = 0.1)
-raster_Q97.5 <- create_raster_object(sf_grff_summary, "prev_Q97.5", res = 0.1)
-raster_sd <- create_raster_object(sf_grff_summary, "prev_sd", res = 0.1)
+# Rasterize the sf object for each column
+raster_Q2.5 <- create_raster_object(sf_grff_summary, "prev_Q2.5")
+raster_Q50 <- create_raster_object(sf_grff_summary, "prev_Q50")
+raster_Q97.5 <- create_raster_object(sf_grff_summary, "prev_Q97.5")
+raster_sd <- create_raster_object(sf_grff_summary, "prev_sd")
 
-# Stack the Rasters Together
+# Stack the rasters together
 raster_grff_summary <- c(raster_Q2.5, raster_Q50, raster_Q97.5, raster_sd)
+
+#plot_spatiotemporal
+plot_spatiotemporal_map_raster(raster_grff_summary, names(raster_grff_summary), plot_by_year = F)
 ```
 
-Plot rasters
-```{r map Q50}
-#plot_spatiotemporal
-plot_spatiotemporal_map_raster(raster_grff_summary, names(raster_grff_summary))
+Plotting GFF output by year
+```{r load grff year data}
+# load in data
+grff_summary_year <- readRDS("data_derived/GRFF_example1.rds")
 
+# Combine post_summary data frames and add time column using imap_dfr
+post_summary_combined <- imap_dfr(grff_summary_year, ~ .x$post_summary %>%
+  mutate(time = .x$time))
+
+# Obtain every fifth time point to only plot every fifth time point
+years <- unique(post_summary_combined$time)[seq(1, length(unique(post_summary_combined$time)), by = 4)] 
+
+# Convert dataframe to sf object
+sf_grff_summary_year <- st_as_sf(post_summary_combined, coords = c("lon", "lat"), crs=4326)
+
+# Rasterize the sf object for each column
+raster_Q2.5_year <- create_raster_object(sf_grff_summary_year, "prev_Q2.5")
+raster_Q50_year <- create_raster_object(sf_grff_summary_year, "prev_Q50")
+raster_Q97.5_year <- create_raster_object(sf_grff_summary_year, "prev_Q97.5")
+raster_sd_year <- create_raster_object(sf_grff_summary_year, "prev_sd")
+raster_time_year <- create_raster_object(sf_grff_summary_year, "time")
+
+# Stack the rasters together
+raster_grff_summary_year <- c(raster_Q2.5_year, raster_Q50_year, raster_Q97.5_year, raster_sd_year, raster_time_year)
+vars = c("prev_Q2.5", "prev_Q50", "prev_Q97.5")
+
+# Load sf data
+sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
+  filter(iso == "UGA")
+
+# Mask the raster using the sf object
+masked_raster_grff_summary_year <- mask(raster_grff_summary_year, vect(sf_uganda))
+
+plot_spatiotemporal_map_raster(masked_raster_grff_summary_year, vars, plot_by_year = T, years)
+```
+
+######## DEBUGGING ------------------------
+This is an example for just one time point
+```{r}
+# Obtain only posterior summary for the first time point
+a <- grff_summary_year[[1]]$post_summary
+
+# Convert the dataframe to sf
+a_sf <- st_as_sf(a, coords = c("lon", "lat"), crs=4326)
+
+# Convert sf to raster
+a_rast <- create_raster_object(a_sf, "prev_Q50")
+
+# Ensure the CRS of the raster and sf object match in Uganda
+sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
+  filter(iso == "UGA")
+
+# Mask the raster using the sf object
+masked_raster <- mask(a_rast, vect(sf_uganda))
+
+# Just plot
+plot(masked_raster)
+
+# Convert raster to df
+raster_df_time1 <- as.data.frame(masked_raster, xy = T) %>%
+    rename("long" = x,
+           "lat" = y)
+
+# Plot
+v <- "prev_Q50"
+p <- raster_df_time1 %>%
+      filter(!is.na(.data[[v]])) %>%
+      ggplot(aes(x = .data$long, y = .data$lat)) +
+      geom_tile(aes(fill = !!sym(v)), color = NA) +
+      scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
+      coord_fixed() +
+      theme_void(base_size = 14) +
+      theme(plot.background = element_rect(fill = "white", color = "white"))
+```
+
+# Get number of rows
+```{r}
+get_num_rows_posterior_summary <- function(grff_summary_year) {
+  # Initialize an empty vector to store the number of rows
+  num_rows <- sapply(grff_summary_year, function(x) nrow(x$post_summary))
+  return(num_rows)
+}
 ```
