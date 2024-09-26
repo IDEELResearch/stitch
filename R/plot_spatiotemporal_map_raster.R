@@ -1,42 +1,59 @@
-#' Plot spatiotemporal maps from raster data for specified variables
+#' Plot Spatiotemporal Maps from Raster Data for Specified Variables
 #'
-#' This function plots spatiotemporal maps from a raster object for each variable specified in the vector `variable_names`.
-#' It converts the raster data to a data frame, filters out missing values, and creates a plot using **ggplot2** for each variable.
-#' The plots are saved as PNG files in the 'analysis/plots' directory with filenames corresponding to each variable.
-#' Note that the raster object should contain layers corresponding to the variables specified in `variable_names`.
+#' This function plots spatiotemporal maps from a raster dataframe for each variable
+#' specified in the vector `variable_names`. It converts the raster data to a
+#' data frame, filters out missing values, and creates a plot using **ggplot2**
+#' for each variable. If `plot_by_year` is `TRUE`, the function will generate
+#' faceted plots by year, requiring a valid `year_array`. Otherwise, the plots
+#' are generated without faceting. The resulting plots are saved as PNG files
+#' in the 'analysis/plots' directory with filenames corresponding to each variable.
 #'
-#' @param raster A raster object (e.g., a SpatRaster from the **terra** package) containing the data to be plotted.
-#' @param variable_names A vector of variable names corresponding to the layers in the raster object to plot. The function will loop over these names.
-#' @return The function does not return a value; it saves plots as PNG files in the 'analysis/plots' directory.
-#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_viridis_c coord_fixed theme_void theme element_rect ggsave
+#' @param raster_df A data frame containing the raster data to be plotted. The data frame should contain longitude (`long`), latitude (`lat`), time, and variables for plotting.
+#' @param variable_names A vector of variable names corresponding to columns in the `raster_df` to plot. The function loops over these names to generate plots.
+#' @param plot_by_year A logical flag indicating whether to create faceted plots by year (default is `TRUE`). If `TRUE`, the `raster_df` must contain a `time` variable for faceting.
+#' @return The function does not return a value but saves the plots as PNG files in the 'analysis/plots' directory.
+#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_viridis_c coord_fixed theme_void theme element_rect ggsave facet_wrap
 #' @importFrom scales percent_format
 #' @importFrom dplyr filter
 #' @importFrom rlang sym .data
 #' @importFrom stringr str_glue
+#' @importFrom here here
 #' @examples
 #' # Example of how to use the function
-#' # library(terra)
-#' # Load your raster data (assuming 'stacked_rasters' is a SpatRaster with
-#' # layers 'prev_Q50', 'prev_Q2.5', 'prev_Q97.5')
-#' # grff_summary <- readRDS("data_derived/GRFF_summary_example.rds")
-#' # sf_grff_summary <- st_as_sf(grff_summary, coords = c("lon", "lat"), crs=4326)
+#' # Assuming 'raster_df' is a data frame with columns 'long', 'lat', 'time', and variables 'prev_Q50', 'prev_Q2.5', etc.
 #' # variable_names <- c("prev_Q50", "prev_Q2.5", "prev_Q97.5")
-#' # plot_spatiotemporal_map_raster(stacked_rasters, variable_names)
+#' # plot_spatiotemporal_map_raster(raster_df, variable_names, plot_by_year = TRUE)
+#'
+plot_spatiotemporal_map_raster <- function(raster_df, variable_names, plot_by_year = TRUE) {
 
-plot_spatiotemporal_map_raster <- function(raster, variable_names){
-  raster_df <- as.data.frame(raster, xy = TRUE, na.rm = TRUE)
-  for (v in variable_names) {
-    p <- raster_df %>%
-      filter(!is.na(.data[[v]])) %>%
-      ggplot(aes(x = .data$x, y = .data$y)) +
-      geom_tile(aes(fill = !!sym(v)), color = NA) +
-      scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
-      coord_fixed() +
-      #facet_wrap(~year) +
-      theme_void(base_size = 14) +
-      theme(plot.background = element_rect(fill = "white", color = "white"))
+  if (plot_by_year) {
+    for (v in variable_names) {
+      p <- raster_df %>%
+        filter(!is.na(.data[[v]])) %>%
+        ggplot(aes(x = .data$long, y = .data$lat)) +
+        geom_tile(aes(fill = !!sym(v)), color = NA) +
+        scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
+        coord_fixed() +
+        facet_wrap(~time) +
+        theme_void(base_size = 14) +
+        theme(plot.background = element_rect(fill = "white", color = "white"))
 
-    filename <- str_glue("analysis/plots/map_raster_grff_{v}.png")
-    ggsave(filename, p, width = 8, height = 6, dpi = 300)
+      filename <- str_glue("analysis/plots/map_slice_raster_grff_{v}.png")
+      ggsave(filename = here(filename), plot = p, width = 8, height = 6, dpi = 300)
+    }
+  } else {
+    for (v in variable_names) {
+      p <- raster_df %>%
+        filter(!is.na(.data[[v]])) %>%
+        ggplot(aes(x = .data$long, y = .data$lat)) +
+        geom_tile(aes(fill = !!sym(v)), color = NA) +
+        scale_fill_viridis_c(option = "viridis", labels = scales::percent_format(accuracy = 1)) +
+        coord_fixed() +
+        theme_void(base_size = 14) +
+        theme(plot.background = element_rect(fill = "white", color = "white"))
+
+      filename <- str_glue("analysis/plots/map_raster_grff_{v}.png")
+      ggsave(filename = here(filename), plot = p, width = 8, height = 6, dpi = 300)
+    }
   }
 }

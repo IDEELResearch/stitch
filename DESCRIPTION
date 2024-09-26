@@ -21,9 +21,9 @@ Imports:
     terra,
     dplyr,
     sf,
-    purrr,
     rlang,
-    scales
+    scales,
+    purrr
 Suggests:
     knitr,
     rmarkdown,

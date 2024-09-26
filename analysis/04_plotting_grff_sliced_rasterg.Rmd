@@ -1,0 +1,84 @@
+---
+title: "Plotting Posterior Median of GRFF"
+author: "Cecile Meier-Scherling"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    code_folding: hide 
+    fig_width: 8
+    fig_height: 6
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+# Set global chunk options to show code and hide warnings and messages
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Load necessary libraries
+# devtools::install_github("malaria-atlas-project/malariaAtlas")
+library(ggplot2)  # For creating plots
+library(raster)   # For working with raster data
+library(terra)    # For spatial data manipulation
+library(dplyr)    # For data manipulation
+library(sf)       # For handling spatial features (simple features)
+library(viridis)  # For color scales
+library(purrr)    # For functional programming tools like map and imap
+```
+
+Map of GRFF output sliced by year
+```{r}
+# Load the GRFF summary data from an RDS file
+grff_summary_year <- readRDS("data_derived/GRFF_example1.rds")
+
+# Load shape file for Uganda
+sf_uganda <- readRDS("data_derived/sf_admin0_africa.rds") %>%
+  filter(iso == "UGA")
+
+# Combine post_summary data frames for all time points
+# and add a 'time' column using imap_dfr to retain the time information
+post_summary_combined <- imap_dfr(grff_summary_year, ~ .x$post_summary %>%
+  mutate(time = .x$time))
+
+# Convert the combined dataframe to a spatial (sf) object, specifying longitude and latitude
+sf_grff_summary_year <- st_as_sf(post_summary_combined, coords = c("lon", "lat"), crs = 4326)
+
+# Create an empty dataframe to store rasterized data for each time point
+raster_time_slice_df <- data.frame()
+
+# Loop through each unique time point in the data
+for (time_point in unique(sf_grff_summary_year$time)) {
+  
+  # Filter the sf object to get data for the current time point
+  sf_time_slice <- sf_grff_summary_year %>%
+    filter(time == time_point)
+  
+  # Rasterize the sf object for different variables (prev_Q2.5, prev_Q50, etc.)
+  raster_Q2.5 <- create_raster_object(sf_time_slice, "prev_Q2.5")  # Raster for 2.5% quantile
+  raster_Q50 <- create_raster_object(sf_time_slice, "prev_Q50")    # Raster for median (50% quantile)
+  raster_Q97.5 <- create_raster_object(sf_time_slice, "prev_Q97.5")  # Raster for 97.5% quantile
+  raster_sd <- create_raster_object(sf_time_slice, "prev_sd")      # Raster for standard deviation
+  
+  # Combine (stack) the rasters for this time point
+  raster_time_slice <- c(raster_Q2.5, raster_Q50, raster_Q97.5, raster_sd)
+  
+  # Mask the raster using the Uganda shapefile to limit the data to the region of interest
+  masked_raster_grff_summary_year <- mask(raster_time_slice, vect(sf_uganda))
+  
+  # Convert the masked raster to a dataframe and add the 'time' column
+  raster_time_slice_df_current <- as.data.frame(masked_raster_grff_summary_year, xy = TRUE) %>%
+    rename("long" = x, "lat" = y) %>%
+    mutate(time = time_point)
+  
+  # Append the current time slice dataframe to the main dataframe
+  raster_time_slice_df <- rbind(raster_time_slice_df, raster_time_slice_df_current)
+}
+
+# Define the variable names to plot from the rasterized data
+variable_names <- c("prev_Q2.5", "prev_Q50", "prev_Q97.5", "prev_sd")
+
+# Filter the raster data to include time slices every 6 months (roughly 365-day intervals)
+raster_time_slice_df_6m <- raster_time_slice_df %>% filter(time %in% seq(1, 6991, 365))
+
+# Plot the spatiotemporal maps for the filtered raster data, faceting by year
+plot_spatiotemporal_map_raster(raster_time_slice_df_6m, variable_names, plot_by_year = TRUE)
+```
