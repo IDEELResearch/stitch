@@ -2,7 +2,8 @@ library(sf)       # for shapefile handling
 library(ggplot2)  # for plotting
 library(dplyr)    # for data manipulation
 
-#neeva learns how to commit 
+#neeva learns how to commit with git 
+
 
 # Expanded dataframe with 15 African countries and varying admin 1 regions
 prevalence_data <- data.frame(
