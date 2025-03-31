@@ -4,6 +4,8 @@
 # Load packages -----------------------------------------------------------
 # devtools::install_github("malaria-atlas-project/malariaAtlas")
 
+# need to align and use gadm not malariaAtlas
+
 library(malariaAtlas)
 library(dplyr)
 library(sf)
