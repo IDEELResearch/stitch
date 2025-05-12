@@ -6,6 +6,8 @@ library(here)
 library(devtools)
 
 devtools::check()
+if (
+  (!rtools4 && fs.existsSync("C:\\Rtools")) ||)
 #devtools::document()
 #devtools::load_all()
 
@@ -74,6 +76,7 @@ stave_clean$print()
 survey_clean <- stave_clean$get_surveys()
 counts <- stave_clean$get_counts()
 studies_clean <- stave_clean$get_studies()
+saveRDS(stave_clean, "analysis/data/stave_intermed_clean.rds")
 
 validated_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
                          "k13:543:T",  "k13:553:L",   "k13:561:H",   "k13:574:L",  "k13:580:Y",  "k13:622:I","k13:675:V")
