@@ -2,12 +2,12 @@ library(sf)       # for shapefile handling
 library(ggplot2)  # for plotting
 library(dplyr)    # for data manipulation
 library(tidyr)    # for mild clean of stave data
-library(here)
-library(devtools)
+library(usethis)  # req'd for devtools
+library(here)     # req'd for devtools
+library(devtools) # for github code check
 
 devtools::check()
-devtools::check_win_release()
-
+#devtools::check_win_release()
 #devtools::document()
 #devtools::load_all()
 
@@ -19,7 +19,7 @@ africa_shp_admin1 <- readRDS(file = rds_file_admin1)
 
 #Pull in Stave Data
 #stave = readRDS(url("https://github.com/IDEELResearch/scrub/tree/931d07255aadc1e41005ed45c8345d0ac966b272/analysis/data-out"))
-stave <- readRDS("/home/nwernsma/Documents/scrub/analysis/data-out/stave_data.rds")
+#stave <- readRDS("/home/nwernsma/Documents/scrub/analysis/data-out/stave_data.rds")
 
 # Clean Stave Data
 library(countrycode)  # for coordinating STAVE country with iso3c code
