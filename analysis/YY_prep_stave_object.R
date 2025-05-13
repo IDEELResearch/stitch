@@ -6,8 +6,8 @@ library(here)
 library(devtools)
 
 devtools::check()
-if (
-  (!rtools4 && fs.existsSync("C:\\Rtools")) ||)
+devtools::check_win_release()
+
 #devtools::document()
 #devtools::load_all()
 
