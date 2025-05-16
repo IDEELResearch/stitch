@@ -19,7 +19,7 @@ africa_shp_admin1 <- readRDS(file = rds_file_admin1)
 
 #Pull in Stave Data
 #stave = readRDS(url("https://github.com/IDEELResearch/scrub/tree/931d07255aadc1e41005ed45c8345d0ac966b272/analysis/data-out"))
-#stave <- readRDS("/home/nwernsma/Documents/scrub/analysis/data-out/stave_data.rds")
+stave <- readRDS("/home/nwernsma/Documents/scrub/analysis/data-out/stave_data.rds")
 
 # Clean Stave Data
 library(countrycode)  # for coordinating STAVE country with iso3c code
@@ -68,7 +68,6 @@ mismatch_studies <- unique(mismatch_rows$study_ID)
 stave_clean = stave$clone()
 stave_clean$drop_study(mismatch_studies)
 # Confirm studies are dropped
-
 stave$print()
 stave_clean$print()
 
@@ -76,7 +75,8 @@ stave_clean$print()
 survey_clean <- stave_clean$get_surveys()
 counts <- stave_clean$get_counts()
 studies_clean <- stave_clean$get_studies()
-saveRDS(stave_clean, "analysis/data/stave_intermed_clean.rds")
+#saveRDS(stave_clean, "analysis/data/stave_intermed_clean.rds")
+stave_clean <- readRDS("analysis/data/stave_intermed_clean.rds")
 
 validated_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
                          "k13:543:T",  "k13:553:L",   "k13:561:H",   "k13:574:L",  "k13:580:Y",  "k13:622:I","k13:675:V")
@@ -122,7 +122,12 @@ africa_map_points <- ggplot() +
              aes(x = longitude, y = latitude, color = k13_prevalence, size = denominator),
              alpha = 0.8) +
 
-  scale_color_viridis_c(name = "Prevalence") +
+  #scale_color_viridis_c(name = "Prevalence") +
+  scale_color_gradientn(
+    name = "Prevalence (%)",
+    colours = prevalence_palette(100),  # Smooth gradient
+    na.value = "grey85"
+  )+
   scale_size_continuous(name = "Sample Size (N)", range = c(1, 10)) +
   theme_void(base_size = 14) +
   theme(
@@ -131,7 +136,7 @@ africa_map_points <- ggplot() +
   )
 
 ggsave(
-  filename = paste0("analysis/plots/africa_map_k13_points_all_years_facet.png"),
+  filename = paste0("analysis/plots/africa_map_k13_points_all_years_newcolor.png"),
   plot = africa_map_points,
   width = 12, height = 10, units = "in", dpi = 300
 )
@@ -139,33 +144,74 @@ ggsave(
 k13_avg_prevalence <- k13_avg_prevalence %>%
   mutate (
     year_group = case_when (
-      year %in% 2010:2014 ~ "2010-2014",
-      year %in% 2015:2019 ~ "2015-2019",
-      year == 2020 ~ "2020",
-      year == 2021 ~ "2021",
-      year == 2022 ~ "2022",
-      year == 2023 ~ "2023",
+      year %in% 2012:2014 ~ "2012-2014",
+      year %in% 2015:2017 ~ "2015-2017",
+      year %in% 2018:2020 ~ "2018-2020",
+      year %in% 2021:2023 ~ "2021-2023",
       TRUE ~ NA_character_  # exclude years outside these groups
     )
   ) %>%
-    filter(!is.na(year_group))  # drop early/incomplete years
+    filter(!is.na(year_group)) %>%# drop early/incomplete years
+  mutate(
+    prevalence_bin = case_when(
+      k13_prevalence == 0 ~ "0",
+      k13_prevalence > 0 & k13_prevalence <= 1 ~ "0–1",
+      k13_prevalence > 1 & k13_prevalence <= 5 ~ "1–5",
+      k13_prevalence > 5 & k13_prevalence <= 10 ~ "5–10",
+      k13_prevalence > 10 & k13_prevalence <= 20 ~ "10–20",
+      k13_prevalence > 20 & k13_prevalence <= 30 ~ "20–30",
+      k13_prevalence > 30 & k13_prevalence <= 40 ~ "30–40",
+      k13_prevalence > 40 ~ "40+",
+      TRUE ~ NA_character_
+    ),
+    prevalence_bin = factor(prevalence_bin, levels = c("0", "0–1", "1–5", "5–10", "10–20", "20–30", "30–40", "40+"))
+  ) %>%
+  arrange(k13_prevalence)
+
+
+library(scales)
+
+prevalence_palette <- function(n) {
+  pal <- colorRampPalette(c("slategray2", "palegreen2", "khaki2", "orange", "red"))
+  pal(n)
+}
+
+bins <- c("0", "0-1", "1-5", "5-10", "10-20", "20-30", "30-40", "40+")
+
+prevalence_colors <- prevalence_palette(length(bins))
+#names(prevalence_colors) <- bins
+
+custom_colors <- c(
+  "0" = "grey85",
+  "0–1" = prevalence_colors[1],
+  "1–5" = prevalence_colors[2],
+  "5–10" = prevalence_colors[3],
+  "10–20" = prevalence_colors[5],
+  "20–30" = prevalence_colors[6],
+  "30–40" = prevalence_colors[7],
+  "40+" = prevalence_colors[8]
+)
 
 africa_map_points <- ggplot() +
-  facet_wrap(~year_group) +
+  facet_wrap(~year_group, nrow = 2) +
   geom_sf(data = africa_shp_admin0, fill = NA, color = "black", show.legend = FALSE, lwd = 0.1) +
-
-  # Plot zero-prevalence points in grey
-  geom_point(data = filter(k13_avg_prevalence, k13_prevalence == 0),
-             aes(x = longitude, y = latitude, size = denominator),
-             color = "grey70", alpha = 0.8) +
-
-  # Plot non-zero prevalence points with color scale
-  geom_point(data = filter(k13_avg_prevalence, k13_prevalence > 0),
-             aes(x = longitude, y = latitude, color = k13_prevalence, size = denominator),
-             alpha = 0.8) +
-
-  scale_color_viridis_c(name = "Prevalence") +
-  scale_size_continuous(name = "Sample Size (N)", range = c(1, 10)) +
+  geom_point(
+    data = k13_avg_prevalence,
+    aes(x = longitude, y = latitude, size = denominator, color = prevalence_bin),
+    alpha = 0.8
+  ) +
+  scale_color_manual(
+    name = "Prevalence (%)",
+    values = custom_colors,
+    drop = FALSE
+  ) +
+  #continuous color scale
+  # scale_color_gradientn(
+  #   name = "Prevalence (%)",
+  #   colours = prevalence_palette(100),  # Smooth gradient
+  #   na.value = "grey85"
+  # )
+  scale_size_continuous(name = "Sample Size (N)", range = c(1, 10)) + # Change the size of the points
   theme_void(base_size = 14) +
   theme(
     legend.position = "bottom",
@@ -173,7 +219,69 @@ africa_map_points <- ggplot() +
   )
 
 ggsave(
-  filename = paste0("analysis/plots/africa_map_k13_points_grey_zeros_facet.png"),
+  filename = paste0("analysis/plots/africa_map_k13_points_binned_newcolor.png"),
   plot = africa_map_points,
   width = 12, height = 10, units = "in", dpi = 300
 )
+
+
+##INSET OF EAST AFRICA ##
+inset_data <- k13_avg_prevalence %>% filter(
+  latitude >= -3.04, latitude <= 13.99,
+  longitude >= 28.71, longitude <= 45.37
+) %>%
+  arrange(k13_prevalence)
+
+bbox <- st_bbox(c(
+  xmin = 28.48,
+  xmax = 48.43,
+  ymin = -4.6,
+  ymax = 15.29
+), crs = st_crs(africa_shp_admin0))
+
+africa_shp_admin0_v01 <- st_make_valid(africa_shp_admin0)
+africa_admin0_inset <- st_crop(africa_shp_admin0_v01, bbox)
+
+africa_inset <- ggplot() +
+  facet_wrap(~year_group, nrow = 2) +
+  geom_sf(data = africa_admin0_inset, fill = NA, color = "black", show.legend = FALSE, lwd = 0.1) +
+  geom_point(
+    data = inset_data,
+    aes(x = longitude, y = latitude, size = denominator, color = prevalence_bin),
+    alpha = 0.8
+  ) +
+  scale_color_manual(
+    name = "Prevalence (%)",
+    values = custom_colors,
+    drop = FALSE
+  ) +
+  scale_size_continuous(name = "Sample Size (N)", range = c(1, 7)) +
+  theme_void(base_size = 14) +
+  theme(
+    legend.position = "bottom",
+    plot.background = element_rect(fill = "white", color = "white")
+  )
+
+ggsave(
+  filename = paste0("analysis/plots/EA_inset_map_k13_points_binned_new_color.png"),
+  plot = africa_inset,
+  width = 12, height = 10, units = "in", dpi = 300
+)
+
+
+
+## general stats ##
+
+#how many countries have observed ArtR markers
+#first and last observed
+temporal <- all_prev_data %>% filter(mutation %in% all_who_mutations) %>%
+  filter(prevalence > 0) %>%
+  group_by(mutation) %>%
+  summarize (
+    first_year = min(collection_start, na.rm = TRUE),
+    last_year = max(collection_start, na.rm = TRUE),
+    n_sites = n(),
+    n_countries = n_distinct(country_name),
+    .groups = "drop"
+  ) %>%
+  arrange(first_year)
