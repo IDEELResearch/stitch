@@ -70,6 +70,10 @@ stave_clean$drop_study(mismatch_studies)
 # Confirm studies are dropped
 stave$print()
 stave_clean$print()
+stave_clean$get_counts()
+
+raw_breakdown <- all_prev_data %>% group_by(country_name, mutation) %>% summarise(sum(denominator))
+write.csv(raw_breakdown,"analysis/data/raw_sample_count_breakdown.csv",row.names = FALSE)
 
 ### Pull Validated and Candidate Prevalences ###
 survey_clean <- stave_clean$get_surveys()
@@ -107,6 +111,8 @@ all_prev_data <- read.csv("analysis/data/validated_and_candidate_get_prevalence.
 k13_avg_prevalence <- all_prev_data %>% group_by(latitude, longitude, study_name, country_name, site_name,collection_day, year,denominator) %>%
   summarize(k13_prevalence = sum(prevalence, na.rm = TRUE)) %>%
   ungroup()
+
+raw_breakdown <- k13_avg_prevalence %>% group_by(country_name) %>% summarise(total_samples =sum(denominator))
 
 africa_map_points <- ggplot() +
   facet_wrap(~year) +
