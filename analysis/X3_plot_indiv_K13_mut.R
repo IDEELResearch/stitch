@@ -181,7 +181,7 @@ for (selected_mutation in all_who_mutations){
           plot.background = element_rect(fill = "white", color="white"))
 
   ggsave(
-    filename=paste0("analysis/plots/individual_K13_mut_plot/africa_map_", gsub(":","_", selected_mutation), "prev_facet.png"),
+    filename=paste0("analysis/plots/individual_K13_mut_plot/africa_map_", gsub(":","_", selected_mutation), "_prev_facet.png"),
     plot = africa_map_sample_fill,
     width = 12, height = 10, units = "in", dpi = 300)
 
