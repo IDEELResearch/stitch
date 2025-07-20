@@ -12,7 +12,7 @@ library(countrycode) # for coordinating STAVE country with iso3c code
 library(scales)
 
 # Read in prevalence data
-all_prev_data <- read.csv("analysis/data/validated_get_prevalence.csv")
+prev_data <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
 
 # Read in Africa shape file generated in 01_generative_base_maps.R
 rds_file_admin0 = "analysis/data_derived/sf_admin0_africa.rds"
@@ -21,7 +21,7 @@ africa_shp_admin0 <- readRDS(file = rds_file_admin0)
 africa_shp_admin1 <- readRDS(file = rds_file_admin1)
 
 # Calculate avg K13 prevalence for each lat, long and study_name
-k13_avg_prevalence <- all_prev_data %>%
+k13_avg_prevalence <- prev_data %>%
   group_by(latitude, longitude, study_name, country_name, site_name, collection_day, year, denominator) %>%
   summarize(k13_prevalence = sum(prevalence, na.rm = TRUE)) %>%
   ungroup()
@@ -90,7 +90,9 @@ k13_avg_prevalence <- k13_avg_prevalence %>%
   ) %>%
   arrange(k13_prevalence)
 
-# Define custom colors
+# Define prevlance color map
+bins <- c("0", "0-1", "1-5", "5-10", "10-20", "20-30", "30-40", "40+")
+prevalence_colors <- prevalence_palette(length(bins))
 custom_colors <- c(
   "0" = "grey85",
   "0–1" = prevalence_colors[1],
@@ -102,7 +104,7 @@ custom_colors <- c(
   "40+" = prevalence_colors[8]
 )
 
-# Generate plot
+# Generate preva;nce plot of K13 points binned for 2012-2014, 2015-2017, 2018-2020, 2021-2023
 africa_map_points <- ggplot() +
   facet_wrap(~year_group, nrow = 2) +
   geom_sf(data = africa_shp_admin0, fill = NA, color = "black", show.legend = FALSE, lwd = 0.1) +

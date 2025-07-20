@@ -14,15 +14,16 @@ africa_shp_admin0 <- readRDS(file = rds_file_admin0)
 africa_shp_admin1 <- readRDS(file = rds_file_admin1)
 
 # Load K13 data
-all_prev_data <- read.csv("analysis/data_derived/validated_and_candidate_get_prevalence.csv", header = TRUE)
+prev_data <- read.csv("analysis/data_derived/validated_and_candidate_get_prevalence.csv")
+prev_data2 <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
 # Load stave obj
-stave_clean <- readRDS("analysis/data_raw/stave_final_data.rds")
+stave <- readRDS("analysis/data_raw/stave_final_data.rds")
 
 ## Prepare data for plotting
 # Get surveys, count and studies via stave
-survey_clean <- stave_clean$get_surveys()
-counts <- stave_clean$get_counts()
-studies_clean <- stave_clean$get_studies()
+survey_clean <- stave$get_surveys()
+counts <- stave$get_counts()
+studies_clean <- stave$get_studies()
 
 # Calculate the centroids for each MULTIPOLYGON
 sf_use_s2(FALSE)
@@ -43,9 +44,6 @@ all_who_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k1
                        "k13:515:K", "k13:527:H",  "k13:537:I", "k13:537:D", "k13:538:V",  "k13:568:G")
 candidate_mutations <- c("k13:441:L", "k13:449:A",   "k13:469:F",   "k13:481:V",
                          "k13:515:K", "k13:527:H",  "k13:537:I", "k13:537:D", "k13:538:V",  "k13:568:G")
-
-#prep stave objects by aligning coordinates and names
-#where survey_clean is the get_survey output of a clean STAVE object
 
 # Clean and prepare geographic coordinates
 coords_clean <- survey_clean %>%
@@ -130,22 +128,22 @@ for (selected_mutation in all_who_mutations){
   #TO DO: potentially filter by year depending on mutation? mdr1 data extends to 96
 
   # Filter the full prevalence dataset to only include rows for the selected mutation
-  prevalence_data <- all_prev_data %>% filter(mutation == selected_mutation)
+  prev_data_mut <- prev_data %>% filter(mutation == selected_mutation)
   # Join with clean admin1 location data to get consistent lat/lon info and drop any rows with missing data
-  prevalence_data <- left_join(prevalence_data, clean_admin1) %>% drop_na() %>%
+  prev_data_mut <- left_join(prev_data_mut, clean_admin1) %>% drop_na() %>%
     mutate(year = substring(collection_day,0,4))
 
   # If all prevalence values are 0, skip this mutation and continue to the next
-  if(length(which(prevalence_data$prevalence >0)) == 0 ) {
+  if(length(which(prev_data_mut$prevalence >0)) == 0 ) {
     next
   }
 
   # Bin the data by year into broader groups default 3-years)
-  prevalence_data <- bin_years(prevalence_data)
+  prev_data_mut_bin <- bin_years(prev_data_mut)
 
   # Bin the prevalence values into categorical ranges for color mapping in the plot
-  prevalence_data <- prevalence_data %>%   mutate(
-      prevalence_bin = case_when(
+  prev_data_mut_bin <- prev_data_mut_bin %>%
+    mutate(prevalence_bin = case_when(
         prevalence == 0 ~ "0",
         prevalence > 0 & prevalence <= 1 ~ "0–1",
         prevalence > 1 & prevalence <= 5 ~ "1–5",
@@ -166,7 +164,7 @@ for (selected_mutation in all_who_mutations){
     facet_wrap(~year_group) +
     geom_sf(data = africa_shp_admin0, fill = NA, color = "black", show.legend = FALSE, lwd = 0.05) +
     geom_point(
-      data = prevalence_data,
+      data = prev_data_mut_bin,
       aes(x = longitude, y = latitude, size = denominator, color = prevalence_bin),
       alpha = 0.8
     ) +

@@ -14,7 +14,7 @@ library(countrycode) # for coordinating STAVE country with iso3c code
 sf_use_s2(FALSE)
 
 #Pull in Stave Data
-stave <- readRDS("analysis/data_derived/stave_final_data.rds")
+stave <- readRDS("analysis/data_raw/stave_final_data.rds")
 
 # Get surveys from STAVE & identify countries for each lat lon
 survey <- stave$get_surveys()
@@ -61,7 +61,7 @@ all_who_prev_data  <- data.frame()
 start_time <- Sys.time()
 
 for (i in seq_along(all_who_mutations)) {
-  selected_mutation <- all_whod_mutations[i]
+  selected_mutation <- all_who_mutations[i]
   print(paste0("Processing: ", selected_mutation))
 
   prevalence_data <- stave$get_prevalence(selected_mutation) %>%
