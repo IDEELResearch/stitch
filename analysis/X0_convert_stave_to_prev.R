@@ -61,6 +61,7 @@ all_who_prev_data  <- data.frame()
 start_time <- Sys.time()
 
 for (i in seq_along(all_who_mutations)) {
+  mutation_time <- Sys.time()
   selected_mutation <- all_who_mutations[i]
   print(paste0("Processing: ", selected_mutation))
 
@@ -72,14 +73,14 @@ for (i in seq_along(all_who_mutations)) {
 
   # Mid-loop time logging
   current_time <- Sys.time()
-  elapsed <- round(difftime(current_time, start_time, units = "secs"), 2)
-  print(paste("Elapsed time:", elapsed, "seconds (", i, "of", length(all_whod_mutations), ")"))
+  elapsed <- round(difftime(current_time, mutation_time, units = "secs"), 2)
+  print(paste("Elapsed time:", elapsed, "seconds (", i, "of", length(all_who_mutations), ")"))
 }
 
 end_time <- Sys.time()
 print(paste("Total time taken:", round(difftime(end_time, start_time, units = "secs"), 2), "seconds"))
 
-write.csv(all_who_prev_data, "analysis/data-derived/all_who_get_prevalence.csv",header = TRUE)
+write.csv(all_who_prev_data, "analysis/data_derived/all_who_get_prevalence.csv", row.names = FALSE)
 
 ### Pull Validated Prevalences ###
 validated_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
