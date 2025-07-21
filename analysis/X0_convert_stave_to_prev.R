@@ -82,6 +82,26 @@ print(paste("Total time taken:", round(difftime(end_time, start_time, units = "s
 
 write.csv(all_who_prev_data, "analysis/data_derived/all_who_get_prevalence.csv", row.names = FALSE)
 
+all_who_prev_data <- read.csv("analysis/data_derived/all_who_get_prevalence.csv")
+# Filter to only include African countries
+african_countries <- c(
+  "Mali", "Mozambique", "Senegal", "Ghana", "Ethiopia", "Kenya", "Madagascar",
+  "Gambia", "Guinea-Bissau", "Congo - Brazzaville", "Burundi", "South Africa",
+  "Guinea", "Chad", "Tanzania", "Sierra Leone", "Zimbabwe", "Somalia",
+  "South Sudan", "Sudan", "Rwanda", "Congo - Kinshasa", "Gabon", "Malawi",
+  "Togo", "Angola", "Zambia", "Equatorial Guinea", "Uganda", "Liberia",
+  "Comoros", "Niger", "Mauritania", "Burkina Faso", "Benin", "Côte d’Ivoire",
+  "Algeria", "Nigeria", "Cameroon", "Central African Republic",
+  "Democratic Republic of the Congo", "Eritrea", "São Tomé & Príncipe",
+  "Côte d'Ivoire", "Libya"
+)
+all_who_prev_data_africa <- all_who_prev_data %>% filter(country_name %in% african_countries)
+
+# Check that an African country was not excluded
+all_who_prev_data_NOTafrica <- all_who_prev_data %>% filter(!country_name %in% african_countries)
+
+write.csv(all_who_prev_data_africa, "analysis/data_derived/all_who_get_prevalence_africa.csv", row.names = FALSE)
+
 ### Pull Validated Prevalences ###
 validated_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
                          "k13:543:T",  "k13:553:L",   "k13:561:H",   "k13:574:L",  "k13:580:Y",  "k13:622:I","k13:675:V")
