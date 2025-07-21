@@ -14,8 +14,7 @@ africa_shp_admin0 <- readRDS(file = rds_file_admin0)
 africa_shp_admin1 <- readRDS(file = rds_file_admin1)
 
 # Load K13 data
-prev_data <- read.csv("analysis/data_derived/validated_and_candidate_get_prevalence.csv")
-prev_data2 <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
+prev_data <- read.csv("analysis/data_derived/all_who_get_prevalence_africa.csv")
 # Load stave obj
 stave <- readRDS("analysis/data_raw/stave_final_data.rds")
 
@@ -123,6 +122,8 @@ bin_years <- function(prevalence_data, bin_size = 3) { #take in dataframe with c
   return(prevalence_data)
 }
 
+selected_mutation <- "k13:622:I"
+
 # Plot individual mutation prevalence across Africa
 for (selected_mutation in all_who_mutations){
   #TO DO: potentially filter by year depending on mutation? mdr1 data extends to 96
@@ -179,7 +180,7 @@ for (selected_mutation in all_who_mutations){
           plot.background = element_rect(fill = "white", color="white"))
 
   ggsave(
-    filename=paste0("analysis/plots/individual_K13_mut_plot/africa_map_", gsub(":","_", selected_mutation), "_prev_facet.png"),
+    filename=paste0("analysis/plots/individual_K13_mut_maps/africa_map_", gsub(":","_", selected_mutation), "_prev_facet.png"),
     plot = africa_map_sample_fill,
     width = 12, height = 10, units = "in", dpi = 300)
 

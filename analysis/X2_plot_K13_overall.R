@@ -12,7 +12,7 @@ library(countrycode) # for coordinating STAVE country with iso3c code
 library(scales)
 
 # Read in prevalence data
-prev_data <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
+prev_data <- read.csv("analysis/data_derived/all_who_get_prevalence_africa.csv")
 
 # Read in Africa shape file generated in 01_generative_base_maps.R
 rds_file_admin0 = "analysis/data_derived/sf_admin0_africa.rds"
@@ -39,7 +39,7 @@ africa_map_points <- ggplot() +
   geom_point(data = filter(k13_avg_prevalence, k13_prevalence == 0),
              aes(x = longitude, y = latitude, size = denominator),
              color = "grey70", alpha = 0.8) +
-  geom_point(data = filter(k13_avg_prevalence, k13_prevalence > 0),
+  geom_point(data = k13_avg_prevalence %>% filter(k13_prevalence > 0) %>% arrange(k13_prevalence),
              aes(x = longitude, y = latitude, color = k13_prevalence, size = denominator),
              alpha = 0.8) +
   scale_color_gradientn(
@@ -56,7 +56,7 @@ africa_map_points <- ggplot() +
 
 # Save plot
 ggsave(
-  filename = paste0("analysis/plots/africa_map_k13_points_all_years_newcolor.png"),
+  filename = paste0("analysis/plots/K13_maps/africa_map_k13_points_all_years_newcolor.png"),
   plot = africa_map_points,
   width = 12, height = 10, units = "in", dpi = 300
 )
@@ -127,7 +127,7 @@ africa_map_points <- ggplot() +
 
 # Save plot
 ggsave(
-  filename = paste0("analysis/plots/africa_map_k13_points_binned_newcolor.png"),
+  filename = paste0("analysis/plots/K13_maps/africa_map_k13_points_binned_newcolor.png"),
   plot = africa_map_points,
   width = 12, height = 10, units = "in", dpi = 300
 )
@@ -175,7 +175,7 @@ africa_inset <- ggplot() +
 
 # Save plot
 ggsave(
-  filename = paste0("analysis/plots/EA_inset_map_k13_points_binned_new_color.png"),
+  filename = paste0("analysis/plots/K13_maps/EA_inset_map_k13_points_binned_new_color.png"),
   plot = africa_inset,
   width = 12, height = 10, units = "in", dpi = 300
 )
