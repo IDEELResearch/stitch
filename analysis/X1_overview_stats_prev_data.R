@@ -4,14 +4,26 @@
 library(sf)
 
 # load prevalence prev_df
-prev_df <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
+prev_df <- read.csv("analysis/data_derived/all_who_get_prevalence_africa.csv")
 
 # Define validated mutations
-validated_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
-                         "k13:543:T",  "k13:553:L",   "k13:561:H",   "k13:574:L",  "k13:580:Y",  "k13:622:I","k13:675:V")
+all_who_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I",   "k13:493:H",   "k13:539:T",
+                       "k13:543:T",  "k13:553:L",   "k13:561:H",   "k13:574:L",  "k13:580:Y",  "k13:622:I","k13:675:V",
+                       "k13:441:L", "k13:449:A",   "k13:469:F",   "k13:481:V",
+                       "k13:515:K", "k13:527:H",  "k13:537:I", "k13:537:D", "k13:538:V",  "k13:568:G")
+
+# Obtain number of georeferenced data points
+dim(prev_df)
+
+# Number of unique countries
+length(unique(prev_df$country_name))
+
+# Number of georeferenced sampling locations
+length(unique(prev_df$longitude))
+length(unique(prev_df$latitude))
 
 # number of sites and countries per mutation, and first_year and last_year observed
-summary_table <- prev_df %>% filter(mutation %in% validated_mutations) %>%
+summary_table <- prev_df %>% filter(mutation %in% all_who_mutations) %>%
   filter(prevalence > 0) %>%
   group_by(mutation) %>%
   summarize (
