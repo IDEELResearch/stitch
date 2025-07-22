@@ -90,7 +90,7 @@ bin_years <- function(prevalence_data, bin_size = 3) { #take in dataframe with c
   prevalence_data <- prevalence_data %>% mutate(year = as.numeric(as.character(year)))
 
   # Determine first and last year of non-zero prevalence
-  first_year <- as.character(as.numeric(min(prevalence_data$year[which(prevalence_data$prevalence > 0)]))-1)
+  first_year <- as.numeric(min(prevalence_data$year[which(prevalence_data$prevalence > 0)]))-1
   current_year <- max(prevalence_data$year[which(prevalence_data$prevalence > 0)])
 
   #Define year bin edges
@@ -116,7 +116,7 @@ bin_years <- function(prevalence_data, bin_size = 3) { #take in dataframe with c
         breaks = breaks,
         labels = labels,
         include.lowest = TRUE,
-        right = TRUE
+        right = FALSE
       )
     )  %>% filter(!is.na(year_group)) # drop early/incomplete years
   return(prevalence_data)
