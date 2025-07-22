@@ -11,6 +11,7 @@ library(devtools) # for github code check
 library(countrycode) # for coordinating STAVE country with iso3c code
 library(scales)
 
+
 # Read in prevalence data
 prev_data <- read.csv("analysis/data_derived/validated_get_prevalence.csv")
 
@@ -46,6 +47,7 @@ fuzzy_matched <- st_join(
   dist = dist_threshold,
   left = TRUE
 )
+
 # Drop the unmatched rows from k13_prev_data_with_admin1
 matched_only <- k13_prev_data_with_admin1[!is.na(k13_prev_data_with_admin1$iso), ]
 # Combine both sets
@@ -59,6 +61,67 @@ k13_prev_data_with_admin1 %>%
   geom_sf(data = africa_shp_admin0, fill = NA, color = "black", show.legend = FALSE, lwd = 0.1) +
   theme_minimal() +
   labs(title = "Points where `so` is NA")
+
+####Calculating Admin1 deltas####
+
+#aggregate at the country level
+admin1_prev_summary <- k13_prev_data_with_admin1_final %>%
+  filter(year > 2013) %>%
+  group_by(id_1, name_1, year, name_0, id_0, iso) %>%
+  summarise(
+    n_sites = n(),
+    total_samples = sum(denominator, na.rm = TRUE),
+    mean_prev = weighted.mean(k13_prevalence, denominator, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#calculate delta from first year of measure to last year of measure
+admin1_delta <- admin1_prev_summary %>%
+  arrange(id_1, year) %>%
+  group_by(id_1) %>%
+  summarise(
+    first_year = year[which(!is.na(mean_prev))[1]],
+    last_year  = year[rev(which(!is.na(mean_prev)))[1]],
+    first_prev = mean_prev[which(!is.na(mean_prev))[1]],
+    last_prev  = mean_prev[rev(which(!is.na(mean_prev)))[1]],
+    delta_prev = last_prev - first_prev,
+    n_years = last_year - first_year + 1,
+    .groups = "drop"
+  )
+admin1_map_data <- africa_shp_admin0 %>%
+  st_join(admin1_delta, by = "id_1") %>% mutate(avg_delta = delta_prev/ n_years)
+
+#Map the straight deltas
+adm1_delta <- ggplot(admin1_map_data) +
+  geom_sf(aes(fill =delta_prev), color = "white") +
+  scale_fill_gradient2(
+    low = "blue", high = "red", mid = "white", midpoint = 0,
+    name = "Δ Prevalence"
+  ) +
+  theme_minimal() +
+  labs(title = "Change in K13 Prevalence by Admin1 Region",
+       subtitle = "From first to last measurement year per region")
+
+ggsave(
+  filename = paste0("analysis/plots/africa_adm1_deltas.png"),
+  plot = admin1_delta,
+  width = 12, height = 10, units = "in", dpi = 300
+)
+
+#Map the change in prev/ per year for the sampled timeline
+adm1_delta_yr <- ggplot(admin1_map_data) +
+  geom_sf(aes(fill =avg_delta), color = "white") +
+  scale_fill_gradient2(
+    low = "blue", high = "red", mid = "white", midpoint = 0,
+    name = "Prevalence per year during measured time"
+  ) +
+  theme_minimal() +
+  labs(title = "Change in K13 Prevalence by Admin1 Region",
+       subtitle = "From first to last measurement year per region")
+
+
+
+
 
 # Define a custom color palette function
 prevalence_palette <- function(n) {
