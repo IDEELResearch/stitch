@@ -67,7 +67,7 @@ k13_prev_data_with_admin1 %>%
 #aggregate at the country level
 admin1_prev_summary <- k13_prev_data_with_admin1_final %>%
   filter(year > 2013) %>%
-  group_by(id_1, name_1, year, name_0, id_0, iso) %>%
+  group_by(year, name_0, id_0, iso) %>%
   summarise(
     n_sites = n(),
     total_samples = sum(denominator, na.rm = TRUE),
@@ -77,8 +77,8 @@ admin1_prev_summary <- k13_prev_data_with_admin1_final %>%
 
 #calculate delta from first year of measure to last year of measure
 admin1_delta <- admin1_prev_summary %>%
-  arrange(id_1, year) %>%
-  group_by(id_1) %>%
+  arrange(id_0, year) %>%
+  group_by(id_0) %>%
   summarise(
     first_year = year[which(!is.na(mean_prev))[1]],
     last_year  = year[rev(which(!is.na(mean_prev)))[1]],
@@ -89,7 +89,7 @@ admin1_delta <- admin1_prev_summary %>%
     .groups = "drop"
   )
 admin1_map_data <- africa_shp_admin0 %>%
-  st_join(admin1_delta, by = "id_1") %>% mutate(avg_delta = delta_prev/ n_years)
+  st_join(admin1_delta, by = "id_0") %>% mutate(avg_delta = delta_prev/ n_years)
 
 #Map the straight deltas
 adm1_delta <- ggplot(admin1_map_data) +
@@ -104,7 +104,7 @@ adm1_delta <- ggplot(admin1_map_data) +
 
 ggsave(
   filename = paste0("analysis/plots/africa_adm1_deltas.png"),
-  plot = admin1_delta,
+  plot = adm1_delta,
   width = 12, height = 10, units = "in", dpi = 300
 )
 
@@ -118,6 +118,11 @@ adm1_delta_yr <- ggplot(admin1_map_data) +
   theme_minimal() +
   labs(title = "Change in K13 Prevalence by Admin1 Region",
        subtitle = "From first to last measurement year per region")
+ggsave(
+  filename = paste0("analysis/plots/africa_adm1_deltas_per_year.png"),
+  plot = adm1_delta_yr,
+  width = 12, height = 10, units = "in", dpi = 300
+)
 
 
 
