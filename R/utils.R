@@ -47,3 +47,33 @@ save_figs <- function(name,
   }
 
 }
+
+#' Save CSV (mirrors save_figs style)
+#'
+#' @param name Base name of the file (without extension)
+#' @param df   Data frame to write
+#' @param data_dir Output directory (default: "analysis/data_derived/prev_summary_tables")
+#' @param na   String to use for missing values (default: "")
+#' @param append_date If TRUE, append YYYY-MM-DD to the file name (default: FALSE)
+#' @param gzip If TRUE, write a gzipped CSV (.csv.gz) (default: FALSE)
+#' @param ...  Other args passed to readr::write_csv()
+#' @return (invisible) path to the written file
+save_csv <- function(name,
+                      df,
+                      data_dir = file.path(here::here(), "analysis/data_derived/prev_summary_tables"),
+                      na = "",
+                      append_date = FALSE,
+                      gzip = FALSE,
+                      ...) {
+
+  stopifnot(!missing(name), !missing(df))
+
+  dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+
+  base <- if (isTRUE(append_date)) paste0(name, "_", format(Sys.Date(), "%Y-%m-%d")) else name
+  path <- file.path(data_dir, paste0(base, ".csv", if (isTRUE(gzip)) ".gz" else ""))
+
+  readr::write_csv(df, path, na = na, ...)
+  message("Wrote: ", path)
+  invisible(path)
+}
