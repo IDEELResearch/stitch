@@ -201,16 +201,6 @@ africa_all_years_prev_plot <- ggplot() +
 save_figs(file.path(out_plot_dir, "africa_map_k13_points_all_years"), africa_all_years_prev_plot)
 save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_all_years"), africa_all_years_prev_plot)
 
-# ── Prep: Year groups + bins for binned plots ──────────────────────────────────
-k13_grouped <- k13_site %>%
-  add_year_group(year) %>%
-  filter(!is.na(year_group)) %>%
-  mutate(
-    prevalence_bin = bin_prevalence(k13_prevalence),
-    prevalence_bin = factor(prevalence_bin, levels = PREV_LEVELS)
-  ) %>%
-  arrange(k13_prevalence)
-
 # ── Supplemental Figure 2: East Africa inset, year groups, binned colours ───────────────────
 # Get first year with any samples inside the bbox
 first_year_in_box <- k13_site %>%
