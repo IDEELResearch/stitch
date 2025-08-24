@@ -1,0 +1,46 @@
+country_name,num_study_ID,num_survey_ID,sample_size,total_denominator
+Algeria,1,1,1,23
+Angola,7,16,16,19672
+Benin,6,10,10,9947
+Burkina Faso,7,7,7,33197
+Burundi,1,1,1,21
+Cameroon,7,10,10,17758
+Central African Republic,2,3,3,4355
+Chad,5,10,10,13470
+Comoros,3,6,6,8345
+Congo - Brazzaville,6,13,13,5488
+Congo - Kinshasa,12,43,43,59471
+Côte d'Ivoire,1,2,2,1633
+Côte d’Ivoire,4,6,6,23463
+Democratic Republic of the Congo,12,377,377,129610
+Equatorial Guinea,6,15,15,20917
+Eritrea,2,14,14,21636
+Ethiopia,11,50,50,53519
+Gabon,7,9,9,15167
+Gambia,9,21,21,21411
+Ghana,28,75,75,115542
+Guinea,5,9,9,14679
+Guinea-Bissau,2,2,2,385
+Kenya,21,56,56,69891
+Liberia,3,9,9,8674
+Libya,1,1,1,36
+Madagascar,3,6,6,5974
+Malawi,5,6,6,8460
+Mali,16,39,39,54547
+Mauritania,2,4,4,2122
+Mozambique,6,12,12,12222
+Niger,3,5,5,16691
+Nigeria,9,16,16,7852
+Rwanda,14,45,45,63401
+Senegal,10,30,30,34940
+Sierra Leone,4,8,8,5648
+Somalia,4,8,8,11105
+South Africa,2,2,2,109752
+South Sudan,4,11,11,10991
+Sudan,6,14,14,8004
+São Tomé & Príncipe,1,1,1,2760
+Tanzania,21,239,239,232033
+Togo,5,8,8,24015
+Uganda,22,136,136,169134
+Zambia,7,65,65,25391
+Zimbabwe,2,2,2,165
