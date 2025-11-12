@@ -10,6 +10,7 @@
 #' @param height Height of plot in inches. Default = 6
 #' @param plot_dir Plotting directory. Defaults to "analysis/plots"
 #' @param pdf_plot Logical for plotting pdf too. Default = TRUE
+#' @param svg_plot Logical for plotting svg too. Default = TRUE
 #' @param font_family If specified, sets all font family. Default = NULL
 #' @param res Image resolution in dpi. Default = 300
 #' @param ... Other parameters to pass to ragg::agg_png
@@ -20,6 +21,7 @@ save_figs <- function(name,
                       height = 6,
                       plot_dir = file.path(here::here(), "analysis/plots"),
                       pdf_plot = TRUE,
+                      svg_plot = TRUE,
                       font_family = "Helvetica",
                       res = 300,
                       ...) {
@@ -31,6 +33,7 @@ save_figs <- function(name,
   dir.create(plot_dir, showWarnings = FALSE)
   fig_path <- function(name) {paste0(plot_dir, "/", name)}
 
+  # PNG
   ragg::agg_png(fig_path(paste0(name,".png")),
                 width = width,
                 height = height,
@@ -40,12 +43,21 @@ save_figs <- function(name,
   print(fig)
   dev.off()
 
-  if(pdf_plot) {
-    pdf(file = fig_path(paste0(name,".pdf")), width = width, height = height)
+  # PDF
+  if (pdf_plot) {
+    grDevices::pdf(file = fig_path(paste0(name,".pdf")),
+                   width = width, height = height)
     print(fig)
     dev.off()
   }
 
+  # SVG
+  if (svg_plot) {
+    svglite::svglite(file = fig_path(paste0(name,".svg")),
+                     width = width, height = height)
+    print(fig)
+    dev.off()
+  }
 }
 
 #' Save CSV (mirrors save_figs style)
@@ -90,7 +102,7 @@ save_csv <- function(name,
 #' @export
 prevalence_palette <- function(n) {
   stopifnot(length(n) == 1L, is.numeric(n), n > 0)
-  grDevices::colorRampPalette(c("slategray2", "palegreen2", "khaki2", "orange", "red"))(n)
+  grDevices::colorRampPalette(c("slategray3", "palegreen2", "khaki2", "orange", "red"))(n)
 }
 
 #' Add year groups to a data frame
@@ -157,7 +169,7 @@ prev_bin_colors <- function() {
   pal <- prevalence_palette(8)
   labs <- PREV_LEVELS()
   cols <- c(
-    "0"     = "grey85",
+    "0"     = "grey90",
     "0-1"   = pal[1],
     "1-5"   = pal[2],
     "5-10"  = pal[3],

@@ -17,7 +17,7 @@ sf_use_s2(FALSE)
 stave <- readRDS("analysis/data_raw/stave_final_data.rds")
 
 # Get surveys from STAVE & identify countries for each lat lon
-survey <- stave$get_surveys()
+survey <- stave_df$get_surveys()
 
 # Collapse entries to unique coords
 unique_coords <- survey %>%
