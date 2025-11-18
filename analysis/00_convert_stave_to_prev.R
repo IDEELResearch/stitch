@@ -66,7 +66,6 @@ for (i in seq_along(all_who_mutations)) {
   print(paste0("Processing: ", selected_mutation))
 
   prevalence_data <- stave$get_prevalence(selected_mutation) %>%
-    drop_na() %>%
     mutate(year = substring(collection_day, 0, 4))
   prevalence_data$mutation <- selected_mutation
   all_who_prev_data <- bind_rows(all_who_prev_data, prevalence_data)
@@ -115,7 +114,6 @@ for (i in seq_along(validated_mutations)) {
   print(paste0("Processing: ", selected_mutation))
 
   prevalence_data <- stave$get_prevalence(selected_mutation) %>%
-    drop_na() %>%
     mutate(year = substring(collection_day, 0, 4))
   prevalence_data$mutation <- selected_mutation
   validate_prev_data <- bind_rows(validate_prev_data, prevalence_data)
@@ -145,7 +143,6 @@ for (i in seq_along(candidate_mutations)) {
   print(paste0("Processing: ", selected_mutation))
 
   prevalence_data <- stave$get_prevalence(selected_mutation) %>%
-    drop_na() %>%
     mutate(year = substring(collection_day, 0, 4))
   prevalence_data$mutation <- selected_mutation
   candidate_prev_data <- bind_rows(candidate_prev_data, prevalence_data)
@@ -160,3 +157,198 @@ end_time <- Sys.time()
 print(paste("Total time taken:", round(difftime(end_time, start_time, units = "secs"), 2), "seconds"))
 
 write.csv(candidate_prev_data, "analysis/data-derived/candidate_get_prevalence.csv",header = TRUE)
+
+## PULL PARTNER DRUG DATA
+pd_mutations <- c("crt:76:T","mdr1:86:Y", "mdr1:86:N")
+
+pd_prev_data  <- data.frame()
+#Loop over STAVE object to pull k13 mutations
+start_time <- Sys.time()
+
+for (i in seq_along(pd_mutations)) {
+  selected_mutation <- pd_mutations[i]
+  print(paste0("Processing: ", selected_mutation))
+
+  prevalence_data <- stave$get_prevalence(selected_mutation) %>%
+    mutate(year = substring(collection_day, 0, 4))
+  prevalence_data$mutation <- selected_mutation
+  pd_prev_data <- bind_rows(pd_prev_data, prevalence_data)
+
+  # Mid-loop time logging
+  current_time <- Sys.time()
+  elapsed <- round(difftime(current_time, start_time, units = "secs"), 2)
+  print(paste("Elapsed time:", elapsed, "seconds (", i, "of", length(pd_mutations), ")"))
+}
+
+end_time <- Sys.time()
+print(paste("Total time taken:", round(difftime(end_time, start_time, units = "secs"), 2), "seconds"))
+
+#add note at beginning if N86 pull so I do not confuse it with calculated
+
+pd_prev_data <- pd_prev_data %>% mutate(mutation = if_else(
+  mutation == "mdr1:86:N", "mdr1P:86:N", mutation
+))
+
+write.csv(pd_prev_data, "analysis/data-derived/pd_noedit_get_prevalence.csv",header = TRUE)
+
+new_rows <- pd_prev_data %>%
+  # Filter for the target mutation
+  filter(mutation == "mdr1:86:Y") %>%
+  mutate(
+    # Calculate inverse numerator
+    numerator = denominator - numerator,
+
+    # Calculate inverse prevalence
+    prevalence = 100 - prevalence,
+
+    # SWAP and INVERT the Confidence Intervals
+    # We use a temporary variable 'old_lower' to store the original lower bound
+    # so we can use it to calculate the new upper bound.
+    old_lower = prevalence_lower,
+
+    prevalence_lower = 100 - prevalence_upper,
+    prevalence_upper = 100 - old_lower,
+
+    # Rename the mutation
+    mutation = "mdr1:86:N"
+  ) %>%
+  # Remove the temporary column we created
+  select(-old_lower)
+
+# 3. Bind the new rows to the original dataframe and sort
+final_pd_df <- bind_rows(pd_prev_data, new_rows) %>%
+  arrange(study_id, mutation)
+
+write.csv(final_pd_df, "analysis/data-derived/pd_get_prevalence.csv",header = TRUE)
+
+library(dplyr)
+library(tidyr)
+
+# 1. Load your data
+df <- read.csv("analysis/data_derived/partner_drug_get_prevalence_africa.csv")
+
+library(dplyr)
+
+df <- read.csv("your_data_file.csv")
+
+# 1. Create a Lightweight "Base" (Metadata + Y values)
+# We filter for Y first. This keeps the metadata (lat, lon, etc.) associated with the Y rows.
+# We will use this as the foundation for the new rows.
+base_df <- df %>%
+  filter(mutation == "mdr1:86:Y") %>% drop_na(prevalence)
+
+# 2. Create a Lightweight "N" Lookup Table
+# We ONLY keep the ID and the numeric values we need to add.
+# Dropping the other columns here saves huge amounts of memory.
+n_lookup <- df %>%
+  filter(mutation == "mdr1:86:N") %>%
+  select(survey_id, numerator_N = numerator, prev_N = prevalence)
+
+# 3. Perform the Join and Calculation
+# We join on 'survey_id' to ensure a 1-to-1 match (avoiding the explosion).
+calc_df <- base_df %>%
+  left_join(n_lookup, by = "survey_id") %>%
+  mutate(
+    # Handle missing N data (replace NA with 0)
+    numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
+    prev_N      = ifelse(is.na(prev_N), 0, prev_N),
+
+    # --- BOB VERITY'S FORMULA ---
+    # New Num = (Total - Y_Num) + N_Num
+    numerator = (denominator - numerator) + numerator_N,
+
+    # New Prev = (100 - Y_Prev) + N_Prev
+    prevalence = (100 - prevalence) + prev_N,
+
+    # Update labels and clear CIs
+    mutation = "mdr1C:86:N",
+    prevalence_lower = NA,
+    prevalence_upper = NA
+  ) %>%
+  # Remove the helper columns
+  select(-numerator_N, -prev_N)
+
+# 4. Combine with original data (Optional)
+# If this step still crashes, you can just write 'calc_df' to a separate CSV.
+final_df <- bind_rows(df, calc_df) %>%
+  arrange(survey_id, mutation)
+
+# 5. Save
+write.csv(final_df, "processed_data_safe.csv", row.names = FALSE)
+
+
+###### ATTMEPT #
+library(dplyr)
+
+df <- read.csv("your_data_file.csv")
+
+# 1. Create Base (Y rows)
+base_df <- df %>%
+  filter(mutation == "mdr1:86:Y")
+
+# 2. Create N Lookup
+n_lookup <- df %>%
+  filter(mutation == "mdr1:86:N") %>%
+  select(survey_id, numerator_N = numerator, prev_N = prevalence)
+
+# 3. Join and Calculate using pmax()
+calc_df <- base_df %>%
+  left_join(n_lookup, by = "survey_id") %>%
+  mutate(
+    # Fill missing N data with 0
+    numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
+    prev_N      = ifelse(is.na(prev_N), 0, prev_N),
+
+    # --- CORRECTED CALCULATION ---
+    # We take the MAXIMUM of:
+    # A) The reported N value (trust the data if it exists)
+    # B) The inferred inverse of Y (100 - Y)
+
+    numerator = pmax(numerator_N, denominator - numerator),
+    prevalence = pmax(prev_N, 100 - prevalence),
+
+    # Sanity Check: Ensure we never exceed 100% / Denominator
+    # (Just in case of bad input data)
+    numerator = pmin(numerator, denominator),
+    prevalence = pmin(prevalence, 100),
+
+    mutation = "mdr1C:86:N",
+    prevalence_lower = NA,
+    prevalence_upper = NA
+  ) %>%
+  select(-numerator_N, -prev_N)
+
+
+###USING THIS ONE
+
+calc_df <- base_df %>%
+  left_join(n_lookup, by = "survey_id") %>%
+mutate(
+  numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
+  prev_N      = ifelse(is.na(prev_N), 0, prev_N),
+
+  # --- THE FIX ---
+  # 1. Run Bob's Formula: (Total - Y) + N
+  raw_numerator = (denominator - numerator) + numerator_N,
+  raw_prev      = (100 - prevalence) + prev_N,
+
+  # 2. CLAMP the results
+  # If raw_numerator > denominator, just take denominator
+  numerator  = pmin(raw_numerator, denominator),
+
+  # If raw_prev > 100, just take 100
+  prevalence = pmin(raw_prev, 100),
+
+  mutation = "mdr1C:86:N",
+  prevalence_lower = NA,
+  prevalence_upper = NA
+) %>%
+  select(-numerator_N, -prev_N, -raw_numerator, -raw_prev)
+
+# 4. Combine
+final_df <- bind_rows(df, calc_df) %>%
+  arrange(survey_id, mutation) %>% drop_na(prevalence)
+
+final_exp_df <- final_df %>% filter(mutation == "crt:76:T" | mutation == "mdr1C:86:N")
+
+write.csv(final_exp_df,"analysis/data_derived/partner_drug_calc_get_prevalence.csv", row.names = FALSE)
