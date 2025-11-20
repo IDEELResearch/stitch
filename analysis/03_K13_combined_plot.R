@@ -67,6 +67,10 @@ africa_binned_prev_plot <- ggplot() +
     stroke = 0.4,                 # Set the thickness of the border
     alpha = 0.5                   # Set the opacity to 50%
   ) +
+  labs(
+    x = "Longitude",
+    y = "Latitude"
+  ) +
   scale_fill_manual(
     name   = "Prevalence (%)",
     values = prev_bin_colors(),
@@ -81,17 +85,20 @@ africa_binned_prev_plot <- ggplot() +
     breaks = pretty(k13_grouped$denominator, n = 5),
     guide = guide_legend(position = "right")
   ) +
-  theme_void() +
+  theme_classic() +
   theme(
     legend.position = "bottom",
     legend.title    = element_text(size = 9),
     legend.text     = element_text(size = 8),
-    plot.background = element_rect(fill = "white", colour = "white"),
-    strip.text      = element_text(size = 9)
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    strip.text      = element_text(size = 9, margin = margin(b = 10)),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/africa_map_k13_points_binned"), africa_binned_prev_plot, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1A_africa_map_k13_points_binned"), africa_binned_prev_plot, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2A_africa_map_k13_points_binned"), africa_binned_prev_plot, width = 12, res =600)
 
 africa_binned_prev_plot_sample_size_only <- ggplot() +
   facet_wrap(~year_group, nrow = 1) +
@@ -114,6 +121,10 @@ africa_binned_prev_plot_sample_size_only <- ggplot() +
     drop   = FALSE,
     guide = "none"
   ) +
+  labs(
+    x = "Longitude",
+    y = "Latitude"
+  ) +
   scale_size_continuous(
     name   = "Sample Size (N)",
     range  = c(1, 10),
@@ -122,17 +133,20 @@ africa_binned_prev_plot_sample_size_only <- ggplot() +
     breaks = pretty(k13_grouped$denominator, n = 5),
     guide = guide_legend(position = "right")
   ) +
-  theme_void() +
+  theme_classic() +
   theme(
     legend.position = "right",
     legend.title    = element_text(size = 9),
     legend.text     = element_text(size = 8),
-    plot.background = element_rect(fill = "white", colour = "white"),
-    strip.text      = element_text(size = 9)
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    strip.text      = element_text(size = 9, margin = margin(b = 10)),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/africa_map_k13_points_sampleSize_legend"), africa_binned_prev_plot_sample_size_only, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1A_africa_map_k13_points_binned_sampleSize_legend"), africa_binned_prev_plot_sample_size_only, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2A_africa_map_k13_points_binned_sampleSize_legend"), africa_binned_prev_plot_sample_size_only, width = 12, res =600)
 
 africa_binned_prev_plot_no_legend <- ggplot() +
   facet_wrap(~year_group, nrow = 1) +
@@ -147,6 +161,10 @@ africa_binned_prev_plot_no_legend <- ggplot() +
     colour = "dimgrey",          # Set the border colour to black
     stroke = 0.4,                 # Set the thickness of the border
     alpha = 0.5                   # Set the opacity to 50%
+  ) +
+  labs(
+    x = "Longitude",
+    y = "Latitude"
   ) +
   scale_fill_manual(
     name   = "Prevalence (%)",
@@ -163,17 +181,20 @@ africa_binned_prev_plot_no_legend <- ggplot() +
     breaks = pretty(k13_grouped$denominator, n = 5),
     guide = "none"
   ) +
-  theme_void() +
+  theme_classic() +
   theme(
     legend.position = "right",
     legend.title    = element_text(size = 9),
     legend.text     = element_text(size = 8),
-    plot.background = element_rect(fill = "white", colour = "white"),
-    strip.text      = element_text(size = 9)
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    strip.text      = element_text(size = 9, margin = margin(b = 10)),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/africa_map_k13_points_no_legend"), africa_binned_prev_plot_no_legend, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1A_africa_map_k13_points_binned_no_legend"), africa_binned_prev_plot_no_legend, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2A_africa_map_k13_points_binned_no_legend"), africa_binned_prev_plot_no_legend, width = 12, res =600)
 
 # ── Figure 2: East Africa inset, year groups, binned colours ───────────────────
 # build bbox for East Africa
@@ -229,6 +250,13 @@ east_africa_binned_prev_plot <- ggplot() +
     breaks = pretty(ea_k13_grouped$denominator, n = 5),
     guide = guide_legend(position = "right")
   ) +
+  scale_x_continuous(
+    breaks = seq(
+      from = floor(lims["xmin"] / 4) * 4,
+      to   = ceiling(lims["xmax"] / 4) * 4,
+      by   = 4
+    )
+  ) +
   coord_sf(
     xlim = c(lims["xmin"], lims["xmax"]),
     ylim = c(lims["ymin"], lims["ymax"]),
@@ -244,13 +272,15 @@ east_africa_binned_prev_plot <- ggplot() +
     legend.position = "bottom",
     legend.text     = element_text(size = 8),
     legend.title    = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
     strip.text      = element_text(size = 9, margin = margin(b = 10)),
     panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/EA_inset_map_k13_points_binned"), east_africa_binned_prev_plot, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1B_EA_inset_map_k13_points_binned"), east_africa_binned_prev_plot, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2B_EA_inset_map_k13_points_binned"), east_africa_binned_prev_plot, width = 12, res =600)
 
 east_africa_binned_prev_plot_sampleSize_legend <- ggplot() +
   facet_wrap(~year_group, nrow = 1) +
@@ -281,6 +311,13 @@ east_africa_binned_prev_plot_sampleSize_legend <- ggplot() +
     breaks = pretty(ea_k13_grouped$denominator, n = 5),
     guide = guide_legend(position = "right")
   ) +
+  scale_x_continuous(
+    breaks = seq(
+      from = floor(lims["xmin"] / 4) * 4,
+      to   = ceiling(lims["xmax"] / 4) * 4,
+      by   = 4
+    )
+  ) +
   coord_sf(
     xlim = c(lims["xmin"], lims["xmax"]),
     ylim = c(lims["ymin"], lims["ymax"]),
@@ -296,13 +333,15 @@ east_africa_binned_prev_plot_sampleSize_legend <- ggplot() +
     legend.position = "right",
     legend.text     = element_text(size = 8),
     legend.title    = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
     strip.text      = element_text(size = 9, margin = margin(b = 10)),
     panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/EA_inset_map_k13_points_binned_sampleSize_legend"), east_africa_binned_prev_plot_sampleSize_legend, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1B_EA_inset_map_k13_points_binned_sampleSize_legend"), east_africa_binned_prev_plot_sampleSize_legend, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2B_EA_inset_map_k13_points_binned_sampleSize_legend"), east_africa_binned_prev_plot_sampleSize_legend, width = 12, res =600)
 
 
 east_africa_binned_prev_plot_no_legend <- ggplot() +
@@ -334,6 +373,13 @@ east_africa_binned_prev_plot_no_legend <- ggplot() +
     breaks = pretty(ea_k13_grouped$denominator, n = 5),
     guide = "none"
   ) +
+  scale_x_continuous(
+    breaks = seq(
+      from = floor(lims["xmin"] / 4) * 4,
+      to   = ceiling(lims["xmax"] / 4) * 4,
+      by   = 4
+    )
+  ) +
   coord_sf(
     xlim = c(lims["xmin"], lims["xmax"]),
     ylim = c(lims["ymin"], lims["ymax"]),
@@ -349,13 +395,15 @@ east_africa_binned_prev_plot_no_legend <- ggplot() +
     legend.position = "bottom",
     legend.text     = element_text(size = 8),
     legend.title    = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
     strip.text      = element_text(size = 9, margin = margin(b = 10)),
     panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5)
   )
 
 save_figs(file.path(out_plot_dir, "binned_years/EA_inset_map_k13_points_binned_no_legend"), east_africa_binned_prev_plot_no_legend, width = 12, res =600)
-save_figs(file.path(manuscript_dir, "Fig1B_EA_inset_map_k13_points_binned_no_legend"), east_africa_binned_prev_plot_no_legend, width = 12, res =600)
+save_figs(file.path(manuscript_dir, "Fig2B_EA_inset_map_k13_points_binned_no_legend"), east_africa_binned_prev_plot_no_legend, width = 12, res =600)
 
 # ── Supplemental Figure 1: Africa, faceted by year, gradient colour ─────────────────────────
 k13_site <- prev_raw %>%
@@ -368,44 +416,19 @@ k13_site <- prev_raw %>%
   ) %>%
   arrange(k13_prevalence)
 
-africa_all_years_prev_plot <- ggplot() +
-  facet_wrap(~year, nrow = 4) +
+lon_breaks <- seq(
+  from = floor(min(k13_site$longitude, na.rm = TRUE)),
+  to   = ceiling(max(k13_site$longitude, na.rm = TRUE)),
+  by   = 15
+)
+
+##Supplement 2010-2024 option
+africa_2010_2024_per_year_prev_plot <- ggplot() +
+  facet_wrap(~year, ncol = 3) +
   geom_sf(data = africa_admin0, fill = NA, colour = "black",
           show.legend = FALSE, linewidth = 0.1) +
   geom_point(
-    data = k13_site,
-    aes(x = longitude, y = latitude, fill = prevalence_bin, size = denominator),
-    shape = 21,                   # Use shape 21 for points with fill and border
-    colour = "dimgrey",          # Set the border colour to black
-    stroke = 0.4,                 # Set the thickness of the border
-    alpha = 0.5
-    ) +
-  scale_fill_manual(
-    name   = "Prevalence (%)",
-    values = prev_bin_colors(),
-    limits = PREV_LEVELS(),
-    drop   = FALSE
-  ) +
-  scale_size_continuous(name = "Sample Size (N)", range = c(0.2, 4)) +
-  theme_void() +
-  theme(
-    legend.position = "right",
-    legend.text = element_text(size = 8),
-    legend.title = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
-    strip.text = element_text(size = 9)
-  )
-
-save_figs(file.path(out_plot_dir, "all_years/africa_map_k13_points_all_years"), africa_all_years_prev_plot)
-save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_all_years"), africa_all_years_prev_plot)
-
-##Supplement 2012-2023 option
-africa_all_years_prev_plot <- ggplot() +
-  facet_wrap(~year, nrow = 5) +
-  geom_sf(data = africa_admin0, fill = NA, colour = "black",
-          show.legend = FALSE, linewidth = 0.1) +
-  geom_point(
-    data = k13_grouped,
+    data = k13_site %>% filter(year >= 2010),
     aes(x = longitude, y = latitude,
         fill = prevalence_bin, size = denominator),
     shape = 21,                   # Use shape 21 for points with fill and border
@@ -419,18 +442,31 @@ africa_all_years_prev_plot <- ggplot() +
     limits = PREV_LEVELS(),
     drop   = FALSE
   ) +
-  scale_size_continuous(name = "Sample Size (N)", range = c(0.2, 4)) +
-  theme_void() +
+  labs(
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  scale_size_continuous(name = "Sample Size (N)", range = c(0.2, 8)) +
+  scale_x_continuous(breaks = lon_breaks) +
+  theme_bw() +
   theme(
     legend.position = "right",
+    legend.title = element_text(size = 10),
     legend.text = element_text(size = 8),
-    legend.title = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
+    title = element_text(size = 8),
+    axis.text.x = element_text(size = 8, angle = 30, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    plot.title = element_text(hjust = 0),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
     strip.text = element_text(size = 9)
   )
 
-save_figs(file.path(out_plot_dir, "all_years/africa_map_k13_points_12to23"), africa_all_years_prev_plot)
-save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_12to23"), africa_all_years_prev_plot)
+save_figs(file.path(out_plot_dir, "all_years/africa_map_k13_points_2010_2024"), africa_2010_2024_per_year_prev_plot, width = 9, height = 12)
+save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_2010_2024"), africa_2010_2024_per_year_prev_plot, width = 9, height = 12)
 
 # ── Supplemental Figure 2: East Africa inset, year groups, binned colours ───────────────────
 # Get first year with any samples inside the bbox
@@ -450,12 +486,18 @@ k13_site_inbox <- k13_site %>%
     year >= first_year_in_box
   )
 
-east_africa_all_years_prev_plot <- ggplot() +
-  facet_wrap(~year) +
+lon_break_east <- seq(
+  from = floor(min(k13_site$longitude, na.rm = TRUE)),
+  to   = ceiling(max(k13_site$longitude, na.rm = TRUE)),
+  by   = 5
+)
+
+east_africa_2010_2024_per_year_prev_plot <- ggplot() +
+  facet_wrap(~year, ncol = 4) +
   geom_sf(data = africa_admin0, fill = NA, colour = "black",
           show.legend = FALSE, linewidth = 0.1) +   # full layer is fine
   geom_point(
-    data = k13_site_inbox,
+    data = k13_site_inbox %>% filter(year >= 2010),
     aes(x = longitude, y = latitude, fill = prevalence_bin , size = denominator),
     shape = 21,                   # Use shape 21 for points with fill and border
     colour = "dimgrey",          # Set the border colour to black
@@ -468,74 +510,33 @@ east_africa_all_years_prev_plot <- ggplot() +
     limits = PREV_LEVELS(),
     drop   = FALSE
   ) +
-  scale_size_continuous(name = "Sample Size (N)", range = c(0.5, 5)) +
+  labs(
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  scale_size_continuous(name = "Sample Size (N)", range = c(0.5, 12)) +
+  scale_x_continuous(breaks = lon_breaks_east) +
   coord_sf(
     xlim = c(lims["xmin"], lims["xmax"]),
     ylim = c(lims["ymin"], lims["ymax"]),
     expand = FALSE
   ) +
-  theme_void() +
+ theme_bw() +
   theme(
     legend.position = "right",
-    legend.text  = element_text(size = 8),
-    legend.title = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    title = element_text(size = 8),
+    axis.text.x = element_text(size = 8, angle = 30, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    plot.title = element_text(hjust = 0),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
     strip.text = element_text(size = 9, margin = margin(b = 10))
   )
 
-save_figs(file.path(out_plot_dir, "all_years/EA_inset_map_k13_points_all_years"), east_africa_all_years_prev_plot)
-save_figs(file.path(supplement_dir, "SFig2_EA_inset_map_k13_points_all_years"), east_africa_all_years_prev_plot)
-
-first_year_in_box <- k13_grouped %>%
-  dplyr::filter(
-    dplyr::between(longitude, lims["xmin"], lims["xmax"]),
-    dplyr::between(latitude,  lims["ymin"], lims["ymax"])
-  ) %>%
-  dplyr::summarise(first_year = min(year, na.rm = TRUE)) %>%
-  dplyr::pull(first_year)
-
-# Keep only points inside the bbox and from that year onward
-k13_site_inbox <- k13_grouped %>%
-  dplyr::filter(
-    dplyr::between(longitude, lims["xmin"], lims["xmax"]),
-    dplyr::between(latitude,  lims["ymin"], lims["ymax"]),
-    year >= first_year_in_box
-  )
-
-##Second Option 2012-2023
-east_africa_all_years_prev_plot <- ggplot() +
-  facet_wrap(~year) +
-  geom_sf(data = africa_admin0, fill = NA, colour = "black",
-          show.legend = FALSE, linewidth = 0.1) +   # full layer is fine
-  geom_point(
-    data = k13_site_inbox,
-    #%>% dplyr::filter(k13_prevalence > 0) %>% dplyr::arrange(k13_prevalence),
-    aes(x = longitude, y = latitude, fill = prevalence_bin , size = denominator),
-    shape = 21,                   # Use shape 21 for points with fill and border
-    colour = "dimgrey",          # Set the border colour to black
-    stroke = 0.4,                 # Set the thickness of the border
-    alpha = 0.5
-  ) +
-  scale_fill_manual(
-    name   = "Prevalence (%)",
-    values = prev_bin_colors(),
-    limits = PREV_LEVELS(),
-    drop   = FALSE
-  ) +
-  scale_size_continuous(name = "Sample Size (N)", range = c(0.5, 5)) +
-  coord_sf(
-    xlim = c(lims["xmin"], lims["xmax"]),
-    ylim = c(lims["ymin"], lims["ymax"]),
-    expand = FALSE
-  ) +
-  theme_void() +
-  theme(
-    legend.position = "right",
-    legend.text  = element_text(size = 8),
-    legend.title = element_text(size = 9),
-    plot.background = element_rect(fill = "white", colour = "white"),
-    strip.text = element_text(size = 9, margin = margin(b = 10))
-  )
-
-save_figs(file.path(out_plot_dir, "all_years/EA_inset_map_k13_points_12to23"), east_africa_all_years_prev_plot)
-save_figs(file.path(supplement_dir, "SFig2_EA_inset_map_k13_points_12to23"), east_africa_all_years_prev_plot)
+save_figs(file.path(out_plot_dir, "all_years/EA_inset_map_k13_points_all_years_2010_2024"), east_africa_2010_2024_per_year_prev_plot, width = 9, height = 12)
+save_figs(file.path(supplement_dir, "SFig2_EA_inset_map_k13_points_all_years_2010_2024"), east_africa_2010_2024_per_year_prev_plot, width = 9, height = 12)
