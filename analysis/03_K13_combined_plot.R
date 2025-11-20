@@ -486,7 +486,7 @@ k13_site_inbox <- k13_site %>%
     year >= first_year_in_box
   )
 
-lon_break_east <- seq(
+lon_breaks_east <- seq(
   from = floor(min(k13_site$longitude, na.rm = TRUE)),
   to   = ceiling(max(k13_site$longitude, na.rm = TRUE)),
   by   = 5
