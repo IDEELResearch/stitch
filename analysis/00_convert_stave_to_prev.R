@@ -197,28 +197,47 @@ n_lookup <- df %>%
   filter(mutation == "mdr1:86:N") %>%
   select(survey_id, numerator_N = numerator, prev_N = prevalence)
 
+# 3. Join and Calculate
 calc_df <- base_df %>%
   left_join(n_lookup, by = "survey_id") %>%
-mutate(
-  numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
-  prev_N      = ifelse(is.na(prev_N), 0, prev_N),
-
-  # 1. Bob's Formula: (Total - Y) + N
-  raw_numerator = (denominator - numerator) + numerator_N,
-  raw_prev      = (100 - prevalence) + prev_N,
-
-  # 2. Correct > 100 results
-  # If raw_numerator > denominator, just take denominator
-  numerator  = pmin(raw_numerator, denominator),
-  
-# If raw_prev > 100, just take 100
-  prevalence = pmin(raw_prev, 100),
-
-  mutation = "mdr1C:86:N",
-  prevalence_lower = NA,
-  prevalence_upper = NA
-) %>%
-  select(-numerator_N, -prev_N, -raw_numerator, -raw_prev)
+  mutate(
+    numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
+    prev_N      = ifelse(is.na(prev_N), 0, prev_N),
+    #find numerator sum
+    sumn = numerator + numerator_N,
+    
+    final_numerator = case_when(
+      # Scenario 1: correct accounting - result trust the reported N.
+      sumn >= denominator ~ numerator_N,
+      
+      #' Scenario 2: only mixed entry case - sum is < denom but N == Y
+      #' suggests a single data entry that was only accounting mixed infec
+      #' result - gap is inverse of Y but need to add back in the mixed Ns
+      (sumn < denominator) & (numerator_N == numerator) & (numerator > 0) ~ (denominator - numerator) + numerator_N,
+      
+      # Scenario 3: missing data but N != Y - standard imputation 
+      # result - denom - Y
+      sumn < denominator ~ denominator - numerator
+    ),
+    
+    final_prev = case_when(
+      # Same logic for percentages
+      (prevalence + prev_N) >= 99.9 ~ prev_N,
+      
+      # mixed check with tolerances...
+      ((prevalence + prev_N) < 99.9) & (abs(prev_N - prevalence) < 0.01) & (prevalence > 0) ~ (100 - prevalence) + prev_N,
+      
+      (prevalence + prev_N) < 99.9 ~ 100 - prevalence
+    ),
+    
+    numerator = final_numerator,
+    prevalence = final_prev,
+    
+    mutation = "mdr1C:86:N",
+    prevalence_lower = NA,
+    prevalence_upper = NA
+  ) %>%
+  select(-numerator_N, -prev_N, -sumn, -final_numerator, -final_prev)
 
 # 4. Combine
 final_df <- bind_rows(df, calc_df) %>%
@@ -227,3 +246,29 @@ final_df <- bind_rows(df, calc_df) %>%
 final_exp_df <- final_df %>% filter(mutation == "crt:76:T" | mutation == "mdr1C:86:N")
 
 write.csv(final_exp_df,"analysis/data_derived/partner_drug_calc_get_prevalence.csv", row.names = FALSE)
+
+
+###NWY old impute logic###
+# calc_df <- base_df %>%
+#  left_join(n_lookup, by = "survey_id") %>%
+#mutate(
+#  numerator_N = ifelse(is.na(numerator_N), 0, numerator_N),
+#  prev_N      = ifelse(is.na(prev_N), 0, prev_N),
+#
+#  # 1. Bob's Formula: (Total - Y) + N
+#  raw_numerator = (denominator - numerator) + numerator_N,
+#  raw_prev      = (100 - prevalence) + prev_N,
+#
+#  # 2. Correct > 100 results
+#  # If raw_numerator > denominator, just take denominator
+#  numerator  = pmin(raw_numerator, denominator),
+#  
+## If raw_prev > 100, just take 100
+#  prevalence = pmin(raw_prev, 100),
+#
+#  mutation = "mdr1C:86:N",
+#  prevalence_lower = NA,
+#  prevalence_upper = NA
+#) %>%
+#  select(-numerator_N, -prev_N, -raw_numerator, -raw_prev)
+
