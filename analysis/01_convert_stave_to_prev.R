@@ -69,7 +69,7 @@ for (mut in all_who_mutations) {
 end_time <- Sys.time()
 print(paste("Total time taken:", round(difftime(end_time, start_time, units = "secs"), 2), "seconds"))
 
-write.csv(all_who_prev_data, "analysis/data_derived/all_who_get_prevalence_africa.csv", row.names = FALSE)
+write.csv(all_who_prev_data, "analysis/data_derived/all_who_get_prevalence.csv", row.names = FALSE)
 
 # --- Extract all partner drug mutation prevalences -----------------
 pd_mutations <- c("crt:76:T","mdr1:86:Y", "mdr1:86:N")
