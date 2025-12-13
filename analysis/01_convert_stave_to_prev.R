@@ -27,6 +27,7 @@ africa_shp_admin1 <- sf::st_transform(africa_shp_admin0, crs = 4326)
 
 # Get surveys from STAVE object
 survey <- stave$get_surveys()
+
 # # Convert into coordinates into sf class
 # survey_sf <- survey %>%
 #   sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
