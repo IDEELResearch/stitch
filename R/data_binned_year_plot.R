@@ -49,12 +49,24 @@
 data_binned_year_plot <- function(
     prev_df,
     africa_admin0,
+    shp_non_malaria,
     lims = NULL,
+    size_scale,
     legend = TRUE,
     east_africa = FALSE,
     x_axis_break = 10,
-    y_axis_break = 10
+    y_axis_break = 10,
+    n_facet_wrap = 1
     ){
+
+  # Enforce factor levels
+  prev_df <- prev_df %>%
+    dplyr::mutate(
+      prevalence = factor(prevalence, levels = PREV_LEVELS(), ordered = TRUE)
+    )
+  cols <- prev_bin_colors()
+  cols <- cols[PREV_LEVELS()]      # reorder to match levels
+  names(cols) <- PREV_LEVELS()
 
   # If lims not provided, derive from data (or sf background)
   if (is.null(lims)) {
@@ -79,14 +91,11 @@ data_binned_year_plot <- function(
   y_breaks <- seq(y_min, y_max, by = y_axis_break)
 
   p <- ggplot() +
-    facet_wrap(~year_group, nrow = 1) +
-    geom_sf(
-      data = africa_admin0,
-      fill = NA, colour = "black",
-      show.legend = FALSE, linewidth = 0.1
-    ) +
+    facet_wrap(~year_group, nrow = n_facet_wrap) +
+    geom_sf(data = africa_admin0, fill = "white", colour = "black", show.legend = FALSE, linewidth = 0.1) +
+    geom_sf(data = shp_non_malaria, fill = "grey80", colour = NA) +
     geom_point(
-      data = prev_df,
+      data = prev_df %>% arrange(prevalence),
       aes(
         x = longitude, y = latitude,
         size = denominator,
@@ -99,13 +108,13 @@ data_binned_year_plot <- function(
     ) +
     scale_fill_manual(
       name   = "Prevalence (%)",
-      values = prev_bin_colors(),
+      values = cols,
       limits = PREV_LEVELS(),
       drop   = FALSE
     ) +
     scale_size_continuous(
       name   = "Sample Size (N)",
-      range  = c(1, 15),
+      range  = size_scale,
       limits = c(min(prev_df$denominator, na.rm = TRUE),
                  max(prev_df$denominator, na.rm = TRUE)),
       breaks = pretty(prev_df$denominator, n = 5),

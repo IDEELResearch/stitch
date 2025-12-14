@@ -1,5 +1,5 @@
 # author: CMS and NWY
-# description: Plot K13 prevalence data across Africa and East Africa
+# description: Plot K13 prevalence data across Africa and East Africa per year and 2-year averages
 
 # -- Packages --------------------------------------------------------------------
 suppressPackageStartupMessages({
@@ -67,15 +67,24 @@ africa_admin0_ea <- africa_admin0 |> sf::st_make_valid()
 # pull x/y limits from the bbox
 east_africa_lims <- sf::st_bbox(bbox_ea)  # named vector: xmin xmax ymin ymax
 
+# --- Grey out non-endemic malaria African countries ---------------------------
+non_malaria_countries <- c(
+  "Egypt", "Morocco", "Libya", "Tunisia", "Algeria",
+  "Cabo Verde", "Lesotho", "Mauritius", "Seychelles"
+)
+
+shape_non_malaria <- africa_admin0 %>%
+  dplyr::filter(name_0 %in% non_malaria_countries)
+
 ################################################################################
 # Plotting Manuscript Figures
 ################################################################################
 
 # --- Figure 1: Africa, year groups, binned colours ----------------------------
-africa_binned_prev_plot <- data_binned_year_plot(k13_prev_2_year_grouped, africa_admin0, x_axis_break = 15)
+africa_binned_prev_plot <- data_binned_year_plot(k13_prev_2_year_grouped, africa_admin0, shape_non_malaria, x_axis_break = 15)
 save_figs(file.path(manuscript_dir, "Fig2A_africa_map_k13_points_binned"), africa_binned_prev_plot, width = 12, res =600)
 
-africa_binned_prev_plot_no_legend <- data_binned_year_plot(k13_prev_2_year_grouped, africa_admin0, legend = FALSE, x_axis_break = 15)
+africa_binned_prev_plot_no_legend <- data_binned_year_plot(k13_prev_2_year_grouped, africa_admin0, shape_non_malaria, legend = FALSE, x_axis_break = 15)
 save_figs(file.path(manuscript_dir, "Fig2A_africa_map_k13_points_binned_no_legend"), africa_binned_prev_plot_no_legend, width = 12, res =600)
 
 # -- Figure 2: East Africa inset, year groups, binned colours -------------------
@@ -87,16 +96,16 @@ east_africa_k13_prev_2_year_grouped <- k13_prev_2_year_grouped |>
     latitude <= bbox_ea["ymax"]
   )
 
-east_africa_binned_prev_plot <- data_binned_year_plot(east_africa_k13_prev_2_year_grouped, africa_admin0_ea, east_africa_lims, legend = TRUE, east_africa = TRUE, x_axis_break = 5, y_axis_break = 5)
+east_africa_binned_prev_plot <- data_binned_year_plot(east_africa_k13_prev_2_year_grouped, africa_admin0_ea, shape_non_malaria, east_africa_lims, legend = TRUE, east_africa = TRUE, x_axis_break = 5, y_axis_break = 5)
 save_figs(file.path(manuscript_dir, "Fig2B_east_africa_inset_map_k13_points_binned"), east_africa_binned_prev_plot, width = 12, res =600)
 
-east_africa_binned_prev_plot_no_legend <- data_binned_year_plot(east_africa_k13_prev_2_year_grouped, africa_admin0_ea, east_africa_lims, legend = FALSE, east_africa = TRUE, x_axis_break = 5, y_axis_break = 5)
+east_africa_binned_prev_plot_no_legend <- data_binned_year_plot(east_africa_k13_prev_2_year_grouped, africa_admin0_ea, shape_non_malaria, east_africa_lims, legend = FALSE, east_africa = TRUE, x_axis_break = 5, y_axis_break = 5)
 save_figs(file.path(manuscript_dir, "Fig2B_east_africa_inset_map_k13_points_binned_no_legend"), east_africa_binned_prev_plot_no_legend, width = 12, res =600)
 
 ################################################################################
 # Plotting Supplemental Manuscript Figures
 ################################################################################
-# -- Supplemental Figure 1: Africa, faceted by year, binned colours -------------------------
+# -- Supplemental Figure 1: Africa, faceted by year, binned colours ------------
 k13_prev_per_year <- prev_raw |>
   group_by(latitude, longitude, study_id, country_name,
            site_name, collection_day, year, denominator) |>
@@ -107,11 +116,11 @@ k13_prev_per_year <- prev_raw |>
   ) |>
   arrange(k13_prevalence)
 
-africa_all_years_prev_plot <- data_per_year_plot(k13_prev_per_year, africa_admin0, size_scale = c(0.2, 4), x_axis_break = 30, y_axis_break = 20, facet_n_row = 6)
+africa_all_years_prev_plot <- data_per_year_plot(k13_prev_per_year, africa_admin0, shape_non_malaria, size_scale = c(0.2, 4), x_axis_break = 30, y_axis_break = 20, facet_n_row = 6)
 save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_all_years"), africa_all_years_prev_plot)
 
-africa_all_years_prev_plot_2012_2023 <- data_per_year_plot(k13_prev_per_year %>% filter(year %in% c(2012:2023)), africa_admin0, size_scale = c(0.5, 5), x_axis_break = 17, y_axis_break = 10)
-save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_2012_2023"), africa_all_years_prev_plot_2012_2023)
+africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(k13_prev_per_year %>% filter(year %in% c(2010:2024)), africa_admin0, shape_non_malaria, size_scale = c(0.5, 5), x_axis_break = 22, y_axis_break = 10, facet_n_row = 5)
+save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_2010_2024"), africa_all_years_prev_plot_2010_2024)
 
 # -- Supplemental Figure 2: East Africa inset, faceted by year, binned colours -------------------
 east_africa_k13_prev_per_year<- k13_prev_per_year |>
@@ -122,119 +131,8 @@ east_africa_k13_prev_per_year<- k13_prev_per_year |>
     latitude <= bbox_ea["ymax"]
   )
 
-east_africa_all_years_prev_plot <- data_per_year_plot(k13_prev_per_year, africa_admin0, east_africa_lims, size_scale = c(0.2, 4), y_axis_break = 5, facet_n_row = 6, crop = TRUE)
+east_africa_all_years_prev_plot <- data_per_year_plot(k13_prev_per_year, africa_admin0, shape_non_malaria, east_africa_lims, size_scale = c(0.2, 4), y_axis_break = 5, facet_n_row = 6, crop = TRUE)
 save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_all_years"), east_africa_all_years_prev_plot)
 
-east_africa_all_years_prev_plot_2012_2023 <- data_per_year_plot(k13_prev_per_year %>% filter(year %in% c(2012:2023)), africa_admin0, east_africa_lims, size_scale = c(0.5, 7), y_axis_break = 5, x_axis_break = 8, crop = TRUE)
-save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_2012_2023"), east_africa_all_years_prev_plot_2012_2023)
-
-# # -- Supplemental Figure 2: East Africa inset, faceted by year, binned colours -------------------
-# # Get first year with any samples inside the bbox
-# first_year_in_box <- k13_prev_per_year |>
-#   dplyr::filter(
-#     dplyr::between(longitude, east_africa_lims["xmin"], east_africa_lims["xmax"]),
-#     dplyr::between(latitude,  east_africa_lims["ymin"], east_africa_lims["ymax"])
-#   ) |>
-#   dplyr::summarise(first_year = min(year, na.rm = TRUE)) |>
-#   dplyr::pull(first_year)
-#
-# # Keep only points inside the bbox and from that year onward
-# k13_prev_per_year_ea <- k13_prev_per_year |>
-#   dplyr::filter(
-#     dplyr::between(longitude, east_africa_lims["xmin"], east_africa_lims["xmax"]),
-#     dplyr::between(latitude,  east_africa_lims["ymin"], east_africa_lims["ymax"]),
-#     year >= first_year_in_box
-#   )
-#
-# east_africa_all_years_prev_plot <- data_per_year_plot(k13_prev_per_year_ea, africa_admin0)
-# save_figs(file.path(out_plot_dir, "all_years/east_africa_inset_map_k13_points_all_years"), east_africa_all_years_prev_plot)
-# save_figs(file.path(supplement_dir, "SFig2_east_africa_inset_map_k13_points_all_years"), east_africa_all_years_prev_plot)
-#
-# east_africa_all_years_prev_plot_2012_2023 <- data_per_year_plot(k13_prev_per_year_ea  %>% filter(year %in% c(2012:2023)), africa_admin0)
-# save_figs(file.path(out_plot_dir, "all_years/east_africa_inset_map_k13_points_12to23"), east_africa_all_years_prev_plot_2012_2023)
-# save_figs(file.path(supplement_dir, "SFig2_east_africa_inset_map_k13_points_12to23"), east_africa_all_years_prev_plot_2012_2023)
-#
-# # --- Plot only 2012-2023
-# first_year_in_box <- k13_prev_2_year_grouped |>
-#   dplyr::filter(
-#     dplyr::between(longitude, east_africa_lims["xmin"], east_africa_lims["xmax"]),
-#     dplyr::between(latitude,  east_africa_lims["ymin"], east_africa_lims["ymax"])
-#   ) |>
-#   dplyr::summarise(first_year = min(year, na.rm = TRUE)) |>
-#   dplyr::pull(first_year)
-#
-# # Keep only points inside the bbox and from that year onward
-# k13_site_inbox <- k13_prev_2_year_grouped |>
-#   dplyr::filter(
-#     dplyr::between(longitude, east_africa_lims["xmin"], east_africa_lims["xmax"]),
-#     dplyr::between(latitude,  east_africa_lims["ymin"], east_africa_lims["ymax"]),
-#     year >= first_year_in_box
-#   )
-#
-# ##Second Option 2012-2023
-# east_africa_all_years_prev_plot <- ggplot() +
-#   facet_wrap(~year) +
-#   geom_sf(data = africa_admin0, fill = NA, colour = "black",
-#           show.legend = FALSE, linewidth = 0.1) +   # full layer is fine
-#   geom_point(
-#     data = k13_site_inbox,
-#     #|> dplyr::filter(k13_prevalence > 0) |> dplyr::arrange(k13_prevalence),
-#     aes(x = longitude, y = latitude, fill = prevalence_bin , size = denominator),
-#     shape = 21,                   # Use shape 21 for points with fill and border
-#     colour = "dimgrey",          # Set the border colour to black
-#     stroke = 0.4,                 # Set the thickness of the border
-#     alpha = 0.5
-#   ) +
-#   scale_fill_manual(
-#     name   = "Prevalence (%)",
-#     values = prev_bin_colors(),
-#     limits = PREV_LEVELS(),
-#     drop   = FALSE
-#   ) +
-#   scale_size_continuous(name = "Sample Size (N)", range = c(0.5, 5)) +
-#   coord_sf(
-#     xlim = c(lims["xmin"], lims["xmax"]),
-#     ylim = c(lims["ymin"], lims["ymax"]),
-#     expand = FALSE
-#   ) +
-#   theme_void() +
-#   theme(
-#     legend.position = "right",
-#     legend.text  = element_text(size = 8),
-#     legend.title = element_text(size = 9),
-#     plot.background = element_rect(fill = "white", colour = "white"),
-#     strip.text = element_text(size = 9, margin = margin(b = 10))
-#   )
-#
-# east_africa_all_years_prev_plot <- ggplot() +
-#   facet_wrap(~year) +
-#   geom_sf(data = africa_admin0, fill = NA, colour = "black",
-#           show.legend = FALSE, linewidth = 0.1) +   # full layer is fine
-#   geom_point(
-#     data = k13_site_inbox,
-#     aes(x = longitude, y = latitude, fill = prevalence_bin , size = denominator),
-#     shape = 21,                   # Use shape 21 for points with fill and border
-#     colour = "dimgrey",          # Set the border colour to black
-#     stroke = 0.4,                 # Set the thickness of the border
-#     alpha = 0.5
-#   ) +
-#   scale_fill_manual(
-#     name   = "Prevalence (%)",
-#     values = prev_bin_colors(),
-#     limits = PREV_LEVELS(),
-#     drop   = FALSE
-#   ) +
-#   scale_size_continuous(name = "Sample Size (N)", range = c(0.5, 5)) +
-#   coord_sf(
-#     xlim = c(lims["xmin"], lims["xmax"]),
-#     ylim = c(lims["ymin"], lims["ymax"]),
-#     expand = FALSE
-#   ) +
-#   theme_void() +
-#   theme(
-#     legend.position = "right",
-#     legend.text  = element_text(size = 8),
-#     legend.title = element_text(size = 9),
-#     plot.background = element_rect(fill = "white", colour = "white"),
-#     strip.text = element_text(size = 9, margin = margin(b = 10))
-#   )
+east_africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(k13_prev_per_year %>% filter(year %in% c(2010:2024)), africa_admin0, shape_non_malaria, east_africa_lims, size_scale = c(0.5, 7), y_axis_break = 5, x_axis_break = 8, facet_n_row = 5, crop = TRUE)
+save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_2010_2024"), east_africa_all_years_prev_plot_2010_2024)

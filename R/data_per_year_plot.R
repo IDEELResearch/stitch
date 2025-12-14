@@ -76,6 +76,7 @@
 data_per_year_plot <- function(
     prev_df,
     africa_admin0,
+    shp_non_malaria,
     lims = NULL,
     size_scale,
     x_axis_break = 10,
@@ -100,11 +101,13 @@ data_per_year_plot <- function(
 
   p <- ggplot() +
     facet_wrap(~year, nrow = facet_n_row) +
-    geom_sf(data = africa_admin0, fill = NA, colour = "black",
-            show.legend = FALSE, linewidth = 0.1) +
+    geom_sf(data = africa_admin0, fill = "white", colour = "black", show.legend = FALSE, linewidth = 0.1) +
+    geom_sf(data = shp_non_malaria,   fill = "grey80", colour = NA) +
     geom_point(
-      data = prev_df,
-      aes(x = longitude, y = latitude, fill = prevalence, size = denominator),
+      data = prev_df %>% arrange(prevalence),
+      aes(x = longitude, y = latitude,
+          fill = prevalence,
+          size = denominator),
       shape = 21,
       colour = "dimgrey",
       stroke = 0.4,
