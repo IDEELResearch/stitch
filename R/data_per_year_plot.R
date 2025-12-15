@@ -1,50 +1,51 @@
-#' Plot binned K13 prevalence faceted by year
+#' Plot binned prevalence faceted by year
 #'
-#' Creates a faceted map (one panel per calendar year) of site-level K13
-#' prevalence binned into discrete categories, with point size proportional
-#' to sample size. Axis tick spacing is explicitly controlled and can be
-#' optionally cropped to a specified spatial bounding box.
+#' Creates a faceted map (one panel per calendar year) of site-level prevalence
+#' binned into discrete categories, with point size proportional to sample size.
+#' Axis tick spacing is explicitly controlled and the plot can optionally be
+#' cropped to a specified spatial bounding box.
 #'
 #' @param prev_df A data frame of site-level observations containing at least
-#'   the columns `longitude`, `latitude`, `year`, `denominator`, and
-#'   `prevalence`. The `prevalence` column should be a factor whose levels
-#'   match `PREV_LEVELS()`.
-#' @param africa_admin0 An `sf` object of administrative boundaries (e.g.,
-#'   Africa admin0) used as a background outline.
-#' @param lims Optional named numeric vector or `sf::st_bbox` with elements
-#'   `xmin`, `xmax`, `ymin`, `ymax`. If `NULL`, limits are inferred from
-#'   `prev_df`.
-#' @param size_scale Numeric vector of length two specifying the minimum and
-#'   maximum point sizes passed to
-#'   `ggplot2::scale_size_continuous(range = size_scale)`.
-#' @param x_axis_break Numeric; spacing (in degrees) between longitude axis
-#'   tick marks. Default is `10`.
-#' @param y_axis_break Numeric; spacing (in degrees) between latitude axis
-#'   tick marks. Default is `10`.
-#' @param facet_n_row Integer; number of rows used in `facet_wrap()` for the
-#'   year panels. Default is `4`.
-#' @param crop Logical; if `TRUE`, the plot is cropped to `lims` using
-#'   `ggplot2::coord_sf()`. If `FALSE` (default), the full spatial extent
-#'   is shown.
+#'   `longitude`, `latitude`, `year`, `denominator`, and `prevalence`.
+#'   `prevalence` should be a factor whose levels match `PREV_LEVELS()`
+#'   (or it will be treated as such by the plotting scales).
+#' @param africa_admin0 An `sf` object of administrative boundaries (e.g., Africa
+#'   admin0) used as a background outline.
+#' @param shp_non_malaria An `sf` object of polygons to overlay as a mask/background
+#'   (e.g., non-malaria areas). Plotted with `fill = "grey80"` and no outline.
+#' @param lims Optional named numeric vector (or `sf::st_bbox`) with elements
+#'   `xmin`, `xmax`, `ymin`, `ymax`. If `NULL`, limits are inferred from `prev_df`.
+#' @param size_scale Numeric vector of length 2 giving the point size range
+#'   passed to `ggplot2::scale_size_continuous(range = size_scale)`.
+#' @param x_axis_break Numeric; spacing (in degrees) between longitude axis ticks.
+#' @param y_axis_break Numeric; spacing (in degrees) between latitude axis ticks.
+#' @param padding_lon_lat Optional Numeric; padding around the map extent (lon/lat).
+#' @param facet_n_row Integer; number of rows used in `facet_wrap()` for year panels.
+#' @param crop Logical; if `TRUE`, crop the plot to `lims` using `ggplot2::coord_sf()`.
+#'   If `FALSE` (default), no explicit cropping is applied.
 #'
 #' @details
-#' Axis tick locations are computed from `lims` and expanded to integer
-#' boundaries before applying the specified spacing. The function expects
-#' `prev_bin_colors()`, `PREV_LEVELS()`, and `plot_theme_text_size()` to be
-#' available in the package namespace.
+#' Axis tick locations are computed from `lims` by rounding inward to integer
+#' boundaries using `ceiling(xmin)`/`floor(xmax)` (and analogously for latitude),
+#' then applying the requested spacing via sequences.
 #'
-#' The function assumes longitude/latitude coordinates in degrees
-#' (typically EPSG:4326). If the background `sf` object is in a projected CRS,
-#' it should be transformed prior to plotting.
+#' The fill scale uses `prev_bin_colors()` and the bin ordering from `PREV_LEVELS()`,
+#' which are expected to be available in the package namespace. Points are plotted
+#' as filled circles (shape 21) with `fill = prevalence` and `size = denominator`.
+#'
+#' The function assumes longitude/latitude coordinates in degrees (typically EPSG:4326).
+#' If the background `sf` objects are in a projected CRS, they should be transformed
+#' prior to plotting.
 #'
 #' @return A `ggplot` object.
 #'
 #' @examples
 #' \dontrun{
 #' # Full Africa, all years
-#' p <- africa_per_year_plot(
+#' p <- data_per_year_plot(
 #'   prev_df = k13_prev_per_year,
 #'   africa_admin0 = africa_admin0,
+#'   shp_non_malaria = shp_non_malaria,
 #'   size_scale = c(0.2, 4)
 #' )
 #' p
@@ -55,9 +56,10 @@
 #'   crs = sf::st_crs(africa_admin0)
 #' )
 #'
-#' p_ea <- africa_per_year_plot(
+#' p_ea <- data_per_year_plot(
 #'   prev_df = east_africa_k13_prev_per_year,
 #'   africa_admin0 = africa_admin0_ea,
+#'   shp_non_malaria = shp_non_malaria_ea,
 #'   lims = ea_lims,
 #'   size_scale = c(0.5, 5),
 #'   x_axis_break = 5,
@@ -68,10 +70,10 @@
 #' }
 #'
 #' @importFrom ggplot2 ggplot facet_wrap geom_sf geom_point aes
-#' @importFrom ggplot2 scale_fill_manual scale_size_continuous scale_x_continuous scale_y_continuous
+#' @importFrom ggplot2 scale_fill_manual scale_size_continuous
+#' @importFrom ggplot2 scale_x_continuous scale_y_continuous
 #' @importFrom ggplot2 labs theme_bw theme coord_sf
 #' @importFrom ggplot2 element_blank element_rect element_line
-#'
 #' @export
 data_per_year_plot <- function(
     prev_df,
@@ -81,9 +83,19 @@ data_per_year_plot <- function(
     size_scale,
     x_axis_break = 10,
     y_axis_break = 10,
+    padding_lon_lat = NULL,
     facet_n_row = 4,
     crop = FALSE
 ) {
+
+  # Crop data if crop == TRUE
+  if (crop) {
+    prev_df <- prev_df %>%
+      dplyr::filter(
+        dplyr::between(longitude, lims["xmin"], lims["xmax"]),
+        dplyr::between(latitude,  lims["ymin"], lims["ymax"])
+      )
+  }
 
   # If lims not provided, derive from data (or sf background)
   if (is.null(lims)) {
@@ -135,16 +147,19 @@ data_per_year_plot <- function(
     scale_x_continuous(breaks = x_breaks) +
     scale_y_continuous(breaks = y_breaks)
 
-  # Only crop if requested (no “east_africa” naming)
+  # Optional cropping of plot
   if (crop) {
     p <- p + coord_sf(
       xlim = c(lims["xmin"], lims["xmax"]),
       ylim = c(lims["ymin"], lims["ymax"]),
       expand = FALSE
     )
-  } else {
-    # still use coord_sf for sf plots; no explicit xlim/ylim
-    p <- p + coord_sf(expand = FALSE)
+  } else if (!is.null(padding_lon_lat)) {
+    # add padding for Africa plots
+    p <- p + coord_sf(
+      xlim = c(lims["xmin"] - padding_lon_lat, lims["xmax"] + padding_lon_lat),
+      ylim = c(lims["ymin"] - padding_lon_lat, lims["ymax"] + padding_lon_lat),
+      expand = FALSE)
   }
 
   plot_theme_text_size(p)

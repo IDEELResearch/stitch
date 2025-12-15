@@ -1,50 +1,77 @@
-#' Plot binned K13 prevalence across Africa (optionally East Africa inset)
+#' Plot binned prevalence across Africa by year group
 #'
-#' Creates a faceted map of site-level K13 prevalence binned into discrete
+#' Creates a faceted map of site-level prevalence binned into discrete
 #' categories, with point size proportional to sample size. Optionally crops to
-#' an East Africa bounding box and reduces longitude tick density.
+#' a user-supplied bounding box (e.g., East Africa) and controls axis tick breaks.
 #'
 #' @param prev_df A data frame of site-level observations containing at least
-#'   `longitude`, `latitude`, `denominator`, `prevalence_bin`, and `year_group`.
-#'   `prevalence_bin` should be a factor whose levels match `PREV_LEVELS()`.
+#'   `longitude`, `latitude`, `denominator`, `prevalence`, and `year_group`.
+#'   `prevalence` should be a factor (or will be coerced to a factor) whose
+#'   levels match `PREV_LEVELS()`.
 #' @param africa_admin0 An `sf` object of Africa administrative boundaries
 #'   (admin0) used as a background outline.
+#' @param shp_non_malaria An `sf` object of polygons to overlay as a mask/background
+#'   (e.g., non-malaria areas). Plotted with `fill = "grey80"` and no outline.
 #' @param lims Optional named numeric vector (or `sf::st_bbox`) with elements
-#'   `xmin`, `xmax`, `ymin`, `ymax`. Required when `east_africa = TRUE`.
-#' @param legend Logical; if `TRUE` (default), show legends. If `FALSE`, hide
-#'   all legends.
-#' @param east_africa Logical; if `TRUE`, crop the map to `lims` via
-#'   `ggplot2::coord_sf()` and show longitude axis ticks every 2 degrees.
+#'   `xmin`, `xmax`, `ymin`, `ymax`. If `NULL`, limits are derived from `prev_df`.
+#'   If `crop = TRUE`, these limits are used for `coord_sf()` cropping.
+#' @param size_scale Numeric vector of length 2 giving the point size range
+#'   passed to `ggplot2::scale_size_continuous(range = size_scale)`.
+#' @param legend Logical; if `TRUE` (default), show legends at the bottom. If
+#'   `FALSE`, hide all legends.
+#' @param crop Logical; if `TRUE`, crop the map to `lims` via
+#'   `ggplot2::coord_sf(xlim=..., ylim=...)`. If `FALSE`, no cropping is applied.
+#' @param x_axis_break Numeric; spacing (in degrees) for longitude tick marks.
+#' @param y_axis_break Numeric; spacing (in degrees) for latitude tick marks.
+#' @param padding_lon_lat Optional Numeric; padding around the map extent (lon/lat).
+#' @param facet_n_row Integer; number of rows in the `year_group` facet layout.
 #'
 #' @details
 #' The fill scale uses `prev_bin_colors()` and the bin ordering from
 #' `PREV_LEVELS()`, which are expected to be available in the package namespace.
-#' Point size is mapped to `denominator` and is scaled to a fixed range
-#' (`1` to `15`).
+#' Points are plotted as filled circles (shape 21) with `fill = prevalence` and
+#' `size = denominator`. Size limits are taken from the observed min/max of
+#' `denominator`, and breaks are computed with `pretty(..., n = 5)`.
 #'
-#' When `east_africa = TRUE`, `lims` must be supplied and should be in the same
-#' coordinate reference system as the plotted longitude/latitude (typically
-#' EPSG:4326).
+#' Axis breaks are computed from `lims`, rounded to the specified break spacing,
+#' and applied via `scale_x_continuous()` / `scale_y_continuous()`.
 #'
 #' @return A `ggplot` object.
 #'
 #' @examples
 #' \dontrun{
-#' p <- africa_overall_plot(k13_grouped, africa_admin0, legend = TRUE)
+#' p <- data_binned_year_plot(
+#'   prev_df = k13_grouped,
+#'   africa_admin0 = africa_admin0,
+#'   shp_non_malaria = shp_non_malaria,
+#'   size_scale = c(1, 15),
+#'   legend = TRUE
+#' )
 #' p
 #'
-#' ea_lims <- sf::st_bbox(c(xmin = 28.48, xmax = 44.5, ymin = -4.60, ymax = 16.00),
-#'                        crs = sf::st_crs(africa_admin0))
-#' p_ea <- africa_overall_plot(ea_k13_grouped, africa_admin0, lims = ea_lims,
-#'                             legend = TRUE, east_africa = TRUE)
+#' ea_lims <- sf::st_bbox(
+#'   c(xmin = 28.48, xmax = 44.5, ymin = -4.60, ymax = 16.00),
+#'   crs = sf::st_crs(africa_admin0)
+#' )
+#' p_ea <- data_binned_year_plot(
+#'   prev_df = ea_k13_grouped,
+#'   africa_admin0 = africa_admin0,
+#'   shp_non_malaria = shp_non_malaria,
+#'   lims = ea_lims,
+#'   size_scale = c(1, 15),
+#'   legend = TRUE,
+#'   crop = TRUE,
+#'   x_axis_break = 2,
+#'   y_axis_break = 2,
+#'   facet_n_row = 2
+#' )
 #' p_ea
 #' }
 #'
 #' @importFrom ggplot2 ggplot facet_wrap geom_sf geom_point aes
 #' @importFrom ggplot2 scale_fill_manual scale_size_continuous theme_bw labs theme
-#' @importFrom ggplot2 element_blank element_rect element_line element_text
-#' @importFrom ggplot2 guide_legend coord_sf scale_x_continuous
-#'
+#' @importFrom ggplot2 element_blank element_rect element_line guide_legend coord_sf
+#' @importFrom ggplot2 scale_x_continuous scale_y_continuous
 #' @export
 data_binned_year_plot <- function(
     prev_df,
@@ -53,20 +80,21 @@ data_binned_year_plot <- function(
     lims = NULL,
     size_scale,
     legend = TRUE,
-    east_africa = FALSE,
+    crop = FALSE,
     x_axis_break = 10,
     y_axis_break = 10,
-    n_facet_wrap = 1
+    padding_lon_lat = NULL,
+    facet_n_row = 1
     ){
 
-  # Enforce factor levels
-  prev_df <- prev_df %>%
-    dplyr::mutate(
-      prevalence = factor(prevalence, levels = PREV_LEVELS(), ordered = TRUE)
-    )
-  cols <- prev_bin_colors()
-  cols <- cols[PREV_LEVELS()]      # reorder to match levels
-  names(cols) <- PREV_LEVELS()
+  # Crop data if crop == TRUE
+  if (crop) {
+    prev_df <- prev_df %>%
+      dplyr::filter(
+        dplyr::between(longitude, lims["xmin"], lims["xmax"]),
+        dplyr::between(latitude,  lims["ymin"], lims["ymax"])
+      )
+  }
 
   # If lims not provided, derive from data (or sf background)
   if (is.null(lims)) {
@@ -91,7 +119,7 @@ data_binned_year_plot <- function(
   y_breaks <- seq(y_min, y_max, by = y_axis_break)
 
   p <- ggplot() +
-    facet_wrap(~year_group, nrow = n_facet_wrap) +
+    facet_wrap(~year_group, nrow = facet_n_row) +
     geom_sf(data = africa_admin0, fill = "white", colour = "black", show.legend = FALSE, linewidth = 0.1) +
     geom_sf(data = shp_non_malaria, fill = "grey80", colour = NA) +
     geom_point(
@@ -108,7 +136,7 @@ data_binned_year_plot <- function(
     ) +
     scale_fill_manual(
       name   = "Prevalence (%)",
-      values = cols,
+      values = prev_bin_colors(),
       limits = PREV_LEVELS(),
       drop   = FALSE
     ) +
@@ -142,14 +170,18 @@ data_binned_year_plot <- function(
   }
 
   # Spatial cropping (optional)
-  if (east_africa) {
+  if (crop) {
     p <- p + coord_sf(
       xlim = c(lims["xmin"], lims["xmax"]),
       ylim = c(lims["ymin"], lims["ymax"]),
       expand = FALSE
     )
-  } else {
-    p <- p + coord_sf(expand = FALSE)
+  } else if (!is.null(padding_lon_lat)) {
+    # add padding for Africa plots
+    p <- p + coord_sf(
+      xlim = c(lims["xmin"] - padding_lon_lat, lims["xmax"] + padding_lon_lat),
+      ylim = c(lims["ymin"] - padding_lon_lat, lims["ymax"] + padding_lon_lat),
+      expand = FALSE)
   }
 
   plot_theme_text_size(p)
