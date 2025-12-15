@@ -1,7 +1,7 @@
 # author: CMS
 # description: Create overview tables/plots for K13 prevalence (prev_df)
 
-# ── Packages ────────────────────────────────────────────────────────────────────
+# -- Packages ------------------------------------------------------------------
 suppressPackageStartupMessages({
   library(dplyr)
   library(readr)
@@ -10,12 +10,12 @@ suppressPackageStartupMessages({
   library(purrr)
 })
 
-# ── I/O paths ───────────────────────────────────────────────────────────────────
-in_csv   <- "analysis/data_derived/all_who_get_prevalence_africa.csv"
-out_dir  <- "analysis/data_derived/prev_summary_information"
-plot_dir <- "analysis/plots/prev_summary_information"
+# --Define plot output path ----------------------------------------------------
+plot_dir <- "plots"
 
-# ── Constants ───────────────────────────────────────────────────────────────────
+# -- Load data -------------------------------------------------------------------
+prev_df <- readr::read_csv("analysis/data_derived/all_who_get_prevalence.csv", show_col_types = FALSE)
+
 # WHO validated + candidate K13 mutations
 all_who_mutations <- c(
   "k13:446:I","k13:458:Y","k13:469:Y","k13:476:I","k13:493:H","k13:539:T",
@@ -24,20 +24,7 @@ all_who_mutations <- c(
   "k13:515:K","k13:527:H","k13:537:I","k13:537:D","k13:538:V","k13:568:G"
 )
 
-# ── Load data ───────────────────────────────────────────────────────────────────
-prev_df <- readr::read_csv(in_csv, show_col_types = FALSE)
-
-# Quick sanity check for required columns
-required_cols <- c(
-  "latitude","longitude","country_name","survey_id","study_id",
-  "denominator","prevalence","mutation","collection_start","year"
-)
-missing_cols <- setdiff(required_cols, names(prev_df))
-if (length(missing_cols)) {
-  stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
-}
-
-# ── Simple counts / overview ────────────────────────────────────────────────────
+# -- Simple counts / overview ----------------------------------------------------
 # Unique georeferenced sites (lat/long pairs)
 n_sites_geo <- prev_df %>% distinct(latitude, longitude) %>% nrow()
 n_countries <- prev_df %>% distinct(country_name) %>% arrange(country_name)
@@ -54,7 +41,7 @@ message("Total genotyped samples in study: ", sum(num_samples$max_sample))
 # Positive-prevalence subset (any > 0)
 prev_df_pos <- prev_df %>% filter(prevalence > 0)
 
-# ── Summary overall (WHO list, positive prevalence only) ───────────────────
+# -- Summary overall (WHO list, positive prevalence only) -------------------
 overall_summary_table <- prev_df %>%
   filter(mutation %in% all_who_mutations, prevalence > 0) %>%
   summarise(
@@ -68,7 +55,7 @@ overall_summary_table <- prev_df %>%
   ) %>%
   arrange(first_year)
 
-# ── Summary per mutation (WHO list, positive prevalence only) ───────────────────
+# -- Summary per mutation (WHO list, positive prevalence only) -------------------
 summary_table <- prev_df %>%
   filter(mutation %in% all_who_mutations, prevalence > 0) %>%
   group_by(mutation) %>%
@@ -85,7 +72,7 @@ summary_table <- prev_df %>%
 
 save_csv(summary_table, file.path(out_dir, "summary_prev_prev_df.csv"))
 
-# ── Per-mutation first/last year stats (any vs positive) ────────────────────────
+# -- Per-mutation first/last year stats (any vs positive) ------------------------
 summary_stats_indv_mut <- prev_df %>%
   group_by(mutation) %>%
   summarise(
@@ -103,7 +90,7 @@ summary_stats_indv_mut <- prev_df %>%
 
 save_csv(summary_stats_indv_mut, file.path(out_dir, "summary_prev_per_mutation_years.csv"))
 
-# ── Year × Country summaries ────────────────────────────────────────────────────
+# -- Year × Country summaries ----------------------------------------------------
 # Note: In your original code, "sample_size" was n_distinct(survey_id).
 # Many readers expect "sample_size" to mean a count of participants.
 # To preserve your output and add clarity, we include BOTH:
@@ -136,7 +123,7 @@ summary_table_per_year_country <- study_counts_country_year %>%
 save_csv(summary_table_per_year_country,
          file.path(out_dir, "summary_prev_per_country_year.csv"))
 
-# ── Country-only summaries ──────────────────────────────────────────────────────
+# -- Country-only summaries ------------------------------------------------------
 study_counts_country <- prev_df %>%
   distinct(study_id, country_name) %>%
   count(country_name, name = "num_study_ID")
@@ -162,7 +149,7 @@ summary_table_per_country <- study_counts_country %>%
 save_csv(summary_table_per_country,
          file.path(out_dir, "summary_prev_per_country.csv"))
 
-# ── Year-only summaries ─────────────────────────────────────────────────────────
+# -- Year-only summaries ---------------------------------------------------------
 study_counts_year <- prev_df %>%
   distinct(study_id, year) %>%
   count(year, name = "num_study_ID")
@@ -188,7 +175,7 @@ summary_table_per_year <- study_counts_year %>%
 save_csv(summary_table_per_year,
          file.path(out_dir, "summary_prev_per_year.csv"))
 
-# ── Plots ───────────────────────────────────────────────────────────────────────
+# -- Plots -----------------------------------------------------------------------
 # Study IDs per year
 p_studies_year <- ggplot(study_counts_year, aes(x = factor(year), y = num_study_ID)) +
   geom_col() +
@@ -213,7 +200,7 @@ p_sample_country_year <- ggplot(sample_counts_country_year, aes(x = factor(year)
 ggsave(file.path(plot_dir, "sampleSize_per_year_country_facet_barplot.png"),
        p_sample_country_year, width = 14, height = 9, dpi = 300)
 
-# ── Console summary (optional) ──────────────────────────────────────────────────
+# -- Console summary (optional) --------------------------------------------------
 cat("\nOverview:\n",
     "- Unique geo sites (lat/long pairs): ", n_sites_geo, "\n",
     "- Countries: ", n_countries, "\n",
@@ -258,18 +245,18 @@ dat_with_k13 <- prev_df %>%
 
 ##############Partner Drug######################################################
 
-# ── I/O paths ───────────────────────────────────────────────────────────────────
+# -- I/O paths -------------------------------------------------------------------
 in_csv   <- "analysis/data_derived/partner_drug_calc_get_prevalence.csv"
 out_dir  <- "analysis/data_derived/prev_summary_information"
 plot_dir <- "analysis/plots/prev_summary_information"
 
-# ── Constants ───────────────────────────────────────────────────────────────────
+# -- Constants -------------------------------------------------------------------
 # WHO validated + candidate K13 mutations
 all_who_mutations <- c(
   "crt:76:T", "mdr1C:86:N"
 )
 
-# ── Load data ───────────────────────────────────────────────────────────────────
+# -- Load data -------------------------------------------------------------------
 prev_df <- readr::read_csv(in_csv, show_col_types = FALSE)
 
 # Quick sanity check for required columns
@@ -283,7 +270,7 @@ if (length(missing_cols)) {
 }
 
 
-# ── Simple counts / overview ────────────────────────────────────────────────────
+# -- Simple counts / overview ----------------------------------------------------
 # Unique georeferenced sites (lat/long pairs)
 n_sites_geo <- prev_df %>% distinct(latitude, longitude) %>% nrow()
 n_countries <- prev_df %>% distinct(country_name) %>% arrange(country_name)
