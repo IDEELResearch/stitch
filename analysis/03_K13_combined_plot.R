@@ -48,10 +48,7 @@ k13_prev_2_year_grouped <- k13_site |>
 
 # --- Create East Africa Box ---------------------------------------------------
 # build bbox for East Africa
-bbox_ea <- sf::st_bbox(
-  c(xmin = 28.48, xmax = 44.5, ymin = -4.60, ymax = 16.00),
-  crs = sf::st_crs(africa_admin0)
-)
+bbox_ea <- get_east_africa_bbox(sf::st_crs(africa_admin0))
 
 # crop background with the same bbox
 bbox_east_africa_sf <- sf::st_as_sfc(bbox_ea)   # convert bbox to polygon
