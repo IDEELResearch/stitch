@@ -9,18 +9,37 @@
 #'   `longitude`, `latitude`, `year`, `denominator`, and `prevalence`.
 #'   `prevalence` should be a factor whose levels match `PREV_LEVELS()`
 #'   (or it will be treated as such by the plotting scales).
+#'
+#' @param mut Character string specifying the mutation group used to define
+#'   prevalence bins and colors. Must be one of:
+#'   \describe{
+#'     \item{\code{"mdr1"}}{Pfmdr1 partner-drug resistance mutations.}
+#'     \item{\code{"crt"}}{Pfcrt partner-drug resistance mutations.}
+#'     \item{\code{"k13"}}{Pfkelch13 artemisinin-resistance mutations.}
+#'   }
+#'   This argument is passed to \code{PREV_LEVELS(mut)} and
+#'   \code{prev_bin_colors(mut)} to ensure consistent bin ordering and coloring.
+#'
 #' @param africa_admin0 An `sf` object of administrative boundaries (e.g., Africa
 #'   admin0) used as a background outline.
+#'
 #' @param shp_non_malaria An `sf` object of polygons to overlay as a mask/background
 #'   (e.g., non-malaria areas). Plotted with `fill = "grey80"` and no outline.
+#'
 #' @param lims Optional named numeric vector (or `sf::st_bbox`) with elements
 #'   `xmin`, `xmax`, `ymin`, `ymax`. If `NULL`, limits are inferred from `prev_df`.
+#'
 #' @param size_scale Numeric vector of length 2 giving the point size range
 #'   passed to `ggplot2::scale_size_continuous(range = size_scale)`.
+#'
 #' @param x_axis_break Numeric; spacing (in degrees) between longitude axis ticks.
+#'
 #' @param y_axis_break Numeric; spacing (in degrees) between latitude axis ticks.
+#'
 #' @param padding_lon_lat Optional Numeric; padding around the map extent (lon/lat).
+#'
 #' @param facet_n_row Integer; number of rows used in `facet_wrap()` for year panels.
+#'
 #' @param crop Logical; if `TRUE`, crop the plot to `lims` using `ggplot2::coord_sf()`.
 #'   If `FALSE` (default), no explicit cropping is applied.
 #'
@@ -77,6 +96,7 @@
 #' @export
 data_per_year_plot <- function(
     prev_df,
+    mut,
     africa_admin0,
     shp_non_malaria,
     lims = NULL,
@@ -127,8 +147,8 @@ data_per_year_plot <- function(
     ) +
     scale_fill_manual(
       name   = "Prevalence (%)",
-      values = prev_bin_colors(),
-      limits = PREV_LEVELS(),
+      values = prev_bin_colors(mut),
+      limits = PREV_LEVELS(mut),
       drop   = FALSE
     ) +
     scale_size_continuous(name = "Sample Size (N)", range = size_scale) +
