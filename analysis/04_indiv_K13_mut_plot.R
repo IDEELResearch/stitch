@@ -79,12 +79,19 @@ for (mut in all_who_mutations) {
     filter(!is.na(year_group),
            denominator > 0) |>
     mutate(
-      prevalence = bin_prevalence(prevalence),
-      prevalence = factor(prevalence, levels = PREV_LEVELS())
+      prevalence = bin_prevalence(prevalence, "k13"),
+      prevalence = factor(prevalence, levels = PREV_LEVELS("k13"))
     ) |>
     arrange(prevalence)
 
-  mut_binned_prev_plot <- data_binned_year_plot(prev_data_mut_bin, africa_admin0, shape_non_malaria, size_scale = c(0.1,10), x_axis_break = 20, facet_n_row = 2)
+  mut_binned_prev_plot <- data_binned_year_plot(
+    prev_df = prev_data_mut_bin,
+    mut = "k13",
+    africa_admin0 = africa_admin0,
+    shp_non_malaria = shape_non_malaria,
+    size_scale = c(0.1,10),
+    x_axis_break = 20,
+    facet_n_row = 2)
   save_figs(file.path(supplement_dir, "K13_individual_prev_data", "binned_years", paste0(mut, "_africa_map_prev_binned_years")), mut_binned_prev_plot)
   message("Saved plot for: ", mut, " -> ", file.path(supplement_dir, "K13_individual_prev_data", "binned_years", paste0(mut, "_africa_map_prev_binned_years")))
 
@@ -92,18 +99,33 @@ for (mut in all_who_mutations) {
   # Bin prevalence column
   prev_data_mut_per_year <- prev_data_mut |>
     mutate(
-      prevalence = bin_prevalence(prevalence),
-      prevalence = factor(prevalence, levels = PREV_LEVELS())
+      prevalence = bin_prevalence(prevalence, "k13"),
+      prevalence = factor(prevalence, levels = PREV_LEVELS("k13"))
     ) |>
     arrange(prevalence)
 
   # Plot annual prev for all available years
-  mut_per_years_prev_plot <- data_per_year_plot(prev_data_mut_per_year, africa_admin0, shape_non_malaria, size_scale = c(0.1,2), x_axis_break = 25, facet_n_row = 6)
+  mut_per_years_prev_plot <- data_per_year_plot(
+    prev_df = prev_data_mut_per_year,
+    mut = "k13",
+    africa_admin0 = africa_admin0,
+    shp_non_malaria = shape_non_malaria,
+    size_scale = c(0.1,2),
+    x_axis_break = 25,
+    facet_n_row = 6)
   save_figs(file.path(supplement_dir, "K13_individual_prev_data", "all_years", paste0(mut, "_africa_map_prev_binned_years")), mut_per_years_prev_plot)
   message("Saved plot for: ", mut, " -> ", file.path(supplement_dir, "K13_individual_prev_data", "all_years", paste0(mut, "_africa_map_prev_binned_years")))
 
   # Plot annual prev for 2010-2024
-  mut_per_years_prev_plot_2010_2024 <- data_per_year_plot(prev_data_mut_per_year %>% filter(year %in% c(2010:2024)), africa_admin0, shape_non_malaria, size_scale = c(0.1, 5), x_axis_break = 22, y_axis_break = 10, facet_n_row = 5)
+  mut_per_years_prev_plot_2010_2024 <- data_per_year_plot(
+    prev_df = prev_data_mut_per_year %>% filter(year %in% c(2010:2024)),
+    mut = "k13",
+    africa_admin0 = africa_admin0,
+    shp_non_malaria = shape_non_malaria,
+    size_scale = c(0.1, 5),
+    x_axis_break = 22,
+    y_axis_break = 10,
+    facet_n_row = 5)
   save_figs(file.path(supplement_dir, "K13_individual_prev_data", "all_years", paste0(mut, "_africa_map_prev_binned_years_2010_2014")), mut_per_years_prev_plot_2010_2024)
   message("Saved plot for: ", mut, " -> ", file.path(supplement_dir, "K13_individual_prev_data", "all_years", paste0(mut, "_africa_map_prev_binned_years_2010_2014")))
 
