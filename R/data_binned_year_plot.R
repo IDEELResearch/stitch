@@ -115,7 +115,9 @@ data_binned_year_plot <- function(
     x_axis_break = 10,
     y_axis_break = 10,
     padding_lon_lat = NULL,
-    facet_n_row = 1
+    facet_n_row = 1,
+    sample_size_legend =  "right",
+    prev_legend = "bottom"
     ){
 
   # Crop data if crop == TRUE
@@ -177,7 +179,7 @@ data_binned_year_plot <- function(
       limits = c(min(prev_df$denominator, na.rm = TRUE),
                  max(prev_df$denominator, na.rm = TRUE)),
       breaks = pretty(prev_df$denominator, n = 5),
-      guide  = guide_legend(position = "right")
+      guide  = guide_legend(position = sample_size_legend)
     ) +
     theme_bw() +
     labs(x = "Longitude", y = "Latitude") +
@@ -195,7 +197,7 @@ data_binned_year_plot <- function(
 
   # Legend handling
   if (legend) {
-    p <- p + theme(legend.position = "bottom")
+    p <- p + theme(legend.position = prev_legend)
   } else {
     p <- p + theme(legend.position = "none")
   }
