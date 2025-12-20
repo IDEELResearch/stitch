@@ -37,22 +37,8 @@ all_who_mutations <- c("k13:446:I", "k13:458:Y", "k13:469:Y", "k13:476:I", "k13:
 prev_raw_K13 <- prev_raw %>%
   filter(mutation %in% all_who_mutations)
 
-# --- Aggregate site-level prevalence ------------------------------------------
-k13_site <- prev_raw_K13 |>
-  group_by(latitude, longitude, study_id, country_name,
-           site_name, collection_day, year, denominator) |>
-  summarise(k13_prevalence = sum(prevalence, na.rm = TRUE), .groups = "drop") |>
-  filter(denominator > 0)
-
-# Bin prevalences by years
-k13_prev_2_year_grouped <- k13_site |>
-  add_year_group(year) |>
-  filter(!is.na(year_group)) |>
-  mutate(
-    prevalence = bin_prevalence(k13_prevalence, "k13"),
-    prevalence = factor(prevalence, levels = PREV_LEVELS("k13"))
-  ) |>
-  arrange(k13_prevalence)
+# --- Add combined K13 data ----------------------------------------------------
+dat_with_k13 <- add_combined_k13(dat)
 
 # --- Create East Africa Box ---------------------------------------------------
 # build bbox for East Africa
@@ -88,7 +74,7 @@ africa_binned_prev_plot <- data_binned_year_plot(
   mut = "k13",
   africa_admin0 = africa_admin0,
   shp_non_malaria = shape_non_malaria,
-  x_axis_break = 20,
+  x_axis_break = 25,
   padding_lon_lat = 3,
   size_scale = c(0.1, 8)
   )
@@ -170,7 +156,7 @@ africa_all_years_prev_plot <- data_per_year_plot(
   padding_lon_lat = 3,
   facet_n_row = 6
   )
-save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_all_years"), africa_all_years_prev_plot)
+save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_all_years"), africa_all_years_prev_plot, height = 8)
 
 africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(
   prev_df = k13_prev_per_year %>% filter(year %in% c(2010:2024)),
@@ -183,7 +169,7 @@ africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(
   padding_lon_lat = 3,
   facet_n_row = 5
   )
-save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_2010_2024"), africa_all_years_prev_plot_2010_2024)
+save_figs(file.path(supplement_dir, "SFig1_africa_map_k13_points_2010_2024"), africa_all_years_prev_plot_2010_2024, height = 8)
 
 # -- Supplemental Figure 2: East Africa inset, faceted by year, binned colours -------------------
 east_africa_k13_prev_per_year<- k13_prev_per_year |>
@@ -205,7 +191,7 @@ east_africa_all_years_prev_plot <- data_per_year_plot(
   facet_n_row = 6,
   crop = TRUE
   )
-save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_all_years"), east_africa_all_years_prev_plot)
+save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_all_years"), east_africa_all_years_prev_plot, height = 8)
 
 east_africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(
   prev_df = k13_prev_per_year %>% filter(year %in% c(2010:2024)),
@@ -219,4 +205,4 @@ east_africa_all_years_prev_plot_2010_2024 <- data_per_year_plot(
   facet_n_row = 5,
   crop = TRUE
   )
-save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_2010_2024"), east_africa_all_years_prev_plot_2010_2024)
+save_figs(file.path(supplement_dir, "SFig2_east_africa_map_k13_points_2010_2024"), east_africa_all_years_prev_plot_2010_2024, height = 8)
