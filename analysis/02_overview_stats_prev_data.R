@@ -10,11 +10,13 @@ suppressPackageStartupMessages({
   library(purrr)
 })
 
+devtools::load_all()
+
 # --Define plot output path ----------------------------------------------------
 plot_dir <- "plots"
 
 # -- Load data -------------------------------------------------------------------
-prev_df <- readr::read_csv("analysis/data_derived/all_who_get_prevalence.csv", show_col_types = FALSE)
+prev_df <- readr::read_csv("analysis/data_derived/all_mutations_get_prevalence.csv", show_col_types = FALSE)
 
 # WHO validated + candidate K13 mutations
 all_who_mutations <- c(

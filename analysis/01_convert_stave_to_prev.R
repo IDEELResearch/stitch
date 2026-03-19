@@ -16,8 +16,7 @@ sf_use_s2(FALSE)
 # --- Read in Data -------------------------------------------------------------
 
 # TO-DO: change back to proper filename
-# stave <- readRDS("analysis/data_raw/stave_final_data.rds")
-stave <- readRDS("analysis/data_raw/stave_data_2026.03.13.rds")
+stave <- readRDS("analysis/data_raw/stave_data_2026.03.17.rds")
 
 # read shape files
 africa_shp_admin0 <- readRDS("analysis/data_derived/sf_admin0_africa.rds")
